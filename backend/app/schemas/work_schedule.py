@@ -21,7 +21,7 @@ class WorkScheduleUpdate(BaseModel):
 class WorkScheduleResponse(WorkScheduleBase):
     id: int
     name_line: Optional[str] = None        # از جدول lines
-    name_service_name: Optional[str] = None
+    name_service: Optional[str] = None
      
     class Config:
         from_attributes = True

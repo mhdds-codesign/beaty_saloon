@@ -100,7 +100,7 @@ export default {
 
         this.$router.push('/customers')
       } catch (e) {
-        this.error = e.message || 'خطا در ذخیره اطلاعات'
+        this.error = 'خطا در ذخیره اطلاعات'
       } finally {
         this.saving = false
       }

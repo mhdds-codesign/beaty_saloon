@@ -26,14 +26,12 @@
 
         <div class="form-group">
           <label>روز هفته <span class="text-danger">*</span></label>
-          <select v-model.number="form.weekday" required>
-            <option :value="0">یکشنبه</option>
-            <option :value="1">دوشنبه</option>
-            <option :value="2">سه‌شنبه</option>
-            <option :value="3">چهارشنبه</option>
-            <option :value="4">پنجشنبه</option>
-            <option :value="5">جمعه</option>
-            <option :value="6">شنبه</option>
+          <select v-model="form.weekday" required>
+            <option >یکشنبه</option>
+            <option >دوشنبه</option>
+            <option >سه‌شنبه</option>
+            <option >چهارشنبه</option>
+            <option >شنبه</option>
           </select>
         </div>
 
@@ -49,7 +47,7 @@
           </div>
           <div class="form-group col-6">
             <label>ساعت پایان</label>
-            <input v-model="form.end_time" type="time" disabled class="disabled-input" style:"background-color: #6c757d; cursor: not-allowed;" />
+            <input v-model="form.end_time" type="time" disabled class="disabled-input" style="background-color: #6c757d; cursor: not-allowed;" />
           </div>
         </div>
 

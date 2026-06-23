@@ -46,8 +46,7 @@
 
     <div v-if="loading" class="loading">در حال بارگذاری...</div>
 
-    <template v-else>
-      <div class="card">
+      <div v-else class="card">
         <div class="card-header">
           <i class="fas fa-table"></i> همه خدمات ({{ total }})
         </div>
@@ -69,7 +68,7 @@
                 <td>{{ line.name_line }}</td>
                 <td>{{ line.name_service }}</td>
                 <td>{{ line.price ? line.price.toLocaleString() + ' تومان' : '—' }}</td>
-                <td>{{ line.duration || '—' }}</td>
+                <td>{{ line.duration_minutes || '—' }}</td>
                 <td>
                   <router-link 
                     :to="`/lines/${line.id}/edit`" 
@@ -123,7 +122,6 @@
           بعدی &rarr;
         </button>
       </div>
-    </template>
   </div>
 </template>
 
@@ -140,7 +138,8 @@ export default {
       totalPages: 1,
       loading: true,
       filters: { 
-        sort: 'default',q: '' 
+        sort: 'default', 
+        q: '' 
       },
       sortOptions: [
         { key: 'default', label: 'پیش‌فرض' },

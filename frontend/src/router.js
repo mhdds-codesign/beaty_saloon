@@ -125,8 +125,8 @@ router.beforeEach(async (to, from, next) => {
       console.error('Auth check failed:', err)
       return next('/login')
     }
+
   }
-  
   next()
 })
 

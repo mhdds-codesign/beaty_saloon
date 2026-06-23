@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Query, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from datetime import datetime
 from app.database import get_db
 from app.models import Customer
 from app.schemas.customer import CustomerCreate, CustomerUpdate, CustomerResponse
@@ -13,33 +14,53 @@ def require_auth(request: Request):
         return False
     return True
 
+# تابع مرتب‌سازی فارسی برای نام
+def persian_sort_key(customer):
+    """مرتب‌سازی بر اساس نام فارسی"""
+    persian_alphabet = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
+    name = customer.name or ''
+    
+    result = []
+    for char in name:
+        if char in persian_alphabet:
+            result.append(persian_alphabet.index(char))
+        else:
+            result.append(ord(char))
+    return result
+
 
 @router.get("")
 async def list_customers(
     request: Request,
     sort: str = Query("default"),
     page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1, le=100),
+    per_page: int = Query(5, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     if not require_auth(request):
         return JSONResponse(status_code=401, content={"message": "Not authenticated"})
 
+    # دریافت همه مشتریان از دیتابیس
+    customers = db.query(Customer).all()
+    
+    # مرتب‌سازی با استفاده از order_map + تابع فارسی
     order_map = {
-        "name": Customer.name,
-        "phone": Customer.phone_number,
-        "register_date": Customer.register_date,
+        "default": lambda: sorted(customers, key=lambda x: x.id),
+        "name": lambda: sorted(customers, key=persian_sort_key),  # مرتب‌سازی فارسی
+        "phone": lambda: sorted(customers, key=lambda x: x.phone_number or ''),
+        "register_date": lambda: sorted(customers, key=lambda x: x.register_date or '', reverse=True),
     }
-    order_col = order_map.get(sort, Customer.id)
+    
+    # اجرای مرتب‌سازی بر اساس پارامتر sort
+    sorted_customers = order_map.get(sort, order_map["default"])()
+    
+    # صفحه‌بندی
+    total = len(sorted_customers)
+    
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_customers = sorted_customers[start:end]
 
-    total = db.query(Customer).count()
-    customers = (
-        db.query(Customer)
-        .order_by(order_col)
-        .offset((page - 1) * per_page)
-        .limit(per_page)
-        .all()
-    )
 
     return {
         "total": total,
@@ -55,7 +76,7 @@ async def list_customers(
                 notes=c.notes or "",
                 address=c.address or "",
             )
-            for c in customers
+            for c in paginated_customers
         ],
     }
 
@@ -88,7 +109,14 @@ async def create_customer(
     if not require_auth(request):
         return JSONResponse(status_code=401, content={"message": "Not authenticated"})
     
-    c = Customer(**body.model_dump())
+    # تبدیل data به دیکشنری
+    customer_data = body.model_dump()
+    
+    # اگر register_date ارسال نشده، از زمان حال استفاده کن
+    if not customer_data.get('register_date'):
+        customer_data['register_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    c = Customer(**customer_data)
     db.add(c)
     db.commit()
     db.refresh(c)

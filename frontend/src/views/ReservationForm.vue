@@ -146,6 +146,22 @@ export default {
         const res = await api.availableSlots(line_id)
         let slots = res.slots || res || []
         
+        // اگر در حالت ویرایش هستیم و رزرو وجود دارد
+        if (this.isEdit && reservation) {
+          const currentSlotId = reservation.schedule_id
+          const exists = slots.some(s => s.id === currentSlotId)
+          
+          // اگر اسلات فعلی در لیست نیست، آن را اضافه کن
+          if (!exists) {
+            slots.push({
+              id: currentSlotId,
+              weekday: reservation.weekday || 'نامشخص',
+              start_time: reservation.start_time || '--:--',
+              end_time: reservation.end_time || '--:--'
+            })
+          }
+        }
+        
         this.availableSlots = slots
       
       } catch (e) {

@@ -152,7 +152,8 @@ export default {
 
     goPage(n) {
       if (n < 1 || n > this.totalPages) return
-      this.page = nthis.load()
+      this.page = n
+      this.load()
     },
 
     async doDelete(customer) {

@@ -36,7 +36,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             Line.id,
             Line.name_line,
             Line.name_service,
-            func.count(WorkSchedule.id).label("busy")
+            func.count(WorkSchedule.id).label("busy_slots")
         )
         .join(WorkSchedule, Line.id == WorkSchedule.line_id)
         .filter(WorkSchedule.status == "busy")

@@ -30,8 +30,8 @@
             <tbody>
               <tr v-for="s in schedules" :key="s.id">
                 <td>#{{ s.id }}</td>
-                <td>{{ s.line_name || '—' }}</td>
-                <td>{{ getWeekdayName(s.weekday) }}</td>
+                <td>{{ s.name_line || '—' }}</td>
+                <td>{{ s.weekday }}</td>
                 <td>{{ s.start_time }}</td>
                 <td>{{ s.end_time }}</td>
                 <td>
@@ -120,18 +120,13 @@ export default {
       }
     },
 
-    getWeekdayName(weekday) {
-      const days = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه']
-      return days[weekday] || 'نامشخص'
-    },
-
     getStatusText(status) {
       const map = { free: 'آزاد', busy: 'رزرو شده' }
       return map[status] || status
     },
 
     getStatusClass(status) {
-      const map = { free: 'bg-success', busy: 'bg-warning', reserved: 'bg-danger' }
+      const map = { free: 'bg-success', busy: 'bg-danger', reserved: 'bg-warning' }
       return map[status] || 'bg-secondary'
     }
   }

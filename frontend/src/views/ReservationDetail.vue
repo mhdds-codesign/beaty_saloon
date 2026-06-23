@@ -113,7 +113,7 @@ export default {
       try {
         const updated = await api.updateReservationStatus(this.$route.params.id, this.newStatus)
         alert('وضعیت نوبت با موفقیت بروزرسانی شد')
-
+        this.$router.push('/reservations')
       } catch (e) {
         alert('خطا در بروزرسانی وضعیت: ' + (e.message || ''))
       }

@@ -16,7 +16,7 @@ def require_auth(request: Request):
 
 
 def reservation_to_response(r: Reservation) -> ReservationResponse:
-    schedule = getattr(r, 'schedule', None)
+    schedule = getattr(r, 'work_schedule', None)
     line = getattr(r, 'line', None)
     
     return ReservationResponse(
@@ -73,7 +73,7 @@ async def get_available_slots(
 async def list_reservations(
     request: Request,
     page: int = Query(1, ge=1),
-    per_page: int = Query(10, ge=1, le=100),
+    per_page: int = Query(5, ge=1, le=100),
     status: str = Query(None),
     db: Session = Depends(get_db),
 ):
@@ -87,7 +87,7 @@ async def list_reservations(
     total = query.count()
     reservations = (
         db.query(Reservation)
-        .options(joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.schedule))
+        .options(joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.work_schedule))
         .order_by(Reservation.id.desc())
         .offset((page - 1) * per_page)
         .limit(per_page)
@@ -112,7 +112,7 @@ async def get_reservation(
 
     reservation = (
         db.query(Reservation)
-        .options(joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.schedule))
+        .options(joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.work_schedule))
         .filter(Reservation.id == reservation_id)
         .first()
     )
@@ -156,7 +156,7 @@ async def create_reservation(
 
     # Reload for response
     reservation = db.query(Reservation).options(
-        joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.schedule)
+        joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.work_schedule)
     ).filter(Reservation.id == reservation.id).first()
 
     return reservation_to_response(reservation)
@@ -202,7 +202,7 @@ async def update_reservation(
 
     # Reload with relationships
     reservation = db.query(Reservation).options(
-        joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.schedule)
+        joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.work_schedule)
     ).filter(Reservation.id == reservation.id).first()
 
     return reservation_to_response(reservation)
@@ -224,11 +224,54 @@ async def update_reservation_status(
     if not reservation:
         raise HTTPException(404, "Reservation not found")
 
+    old_status = reservation.status
+    
+    # اگر status جدید با قبلی یکی است
+    if old_status == body.status:
+        return reservation_to_response(reservation)
+    
+    schedule = db.query(WorkSchedule).filter(WorkSchedule.id == reservation.schedule_id).first()
+    if not schedule:
+        raise HTTPException(404, "Schedule not found")
+    
+    # اگر می‌خواهیم به confirmed برگردیم
+    if body.status == "confirmed" and old_status in ["completed", "cancelled"]:
+        # بررسی کنیم که آیا رزرو confirmed دیگری با همین schedule_id وجود دارد
+        other_confirmed = db.query(Reservation).filter(
+            Reservation.schedule_id == reservation.schedule_id,
+            Reservation.status == "confirmed",
+            Reservation.id != reservation_id
+        ).first()
+        
+        if other_confirmed:
+            raise HTTPException(400, "این زمان قبلاً توسط شخص دیگری نیز رزرو شده است و دیگر در دسترس نیست")
+        
+        # اگر تایم آزاد است، آن را busy کن
+        if schedule.status == "free":
+            schedule.status = "busy"
+        # اگر تایم busy است ولی هیچ رزرو confirmed دیگری وجود ندارد، یعنی قبلاً توسط خود این رزرو busy شده
+        # پس نیازی به تغییر نیست
+    
+    # اگر می‌خواهیم از confirmed به completed یا cancelled برویم
+    elif body.status in ["completed", "cancelled"] and old_status == "confirmed":
+        # بررسی کنیم که آیا رزرو confirmed دیگری با همین schedule_id وجود دارد
+        other_confirmed = db.query(Reservation).filter(
+            Reservation.schedule_id == reservation.schedule_id,
+            Reservation.status == "confirmed",
+            Reservation.id != reservation_id
+        ).first()
+        
+        # اگر هیچ رزرو confirmed دیگری وجود ندارد، تایم را free کن
+        if not other_confirmed and schedule.status == "busy":
+            schedule.status = "free"
+    
+    # به‌روزرسانی status رزرو
     reservation.status = body.status
+    
     db.commit()
 
     reservation = db.query(Reservation).options(
-        joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.schedule)
+        joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.work_schedule)
     ).filter(Reservation.id == reservation.id).first()
 
     return reservation_to_response(reservation)

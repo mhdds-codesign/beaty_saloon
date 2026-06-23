@@ -36,7 +36,7 @@
                   <small>{{ res.name_service }}</small>
                 </td>
                 <td>
-                  {{ getWeekdayName(res.weekday) }}<br>
+                  {{ res.weekday }}<br>
                   <small>{{ res.start_time }} - {{ res.end_time }}</small>
                 </td>
                 <td>{{ res.price ? res.price.toLocaleString() + ' تومان' : '—' }}</td>
@@ -138,11 +138,6 @@ export default {
       if (n < 1 || n > this.totalPages) return
       this.page = n
       this.load()
-    },
-
-    getWeekdayName(weekday) {
-      const days = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه']
-      return days[weekday] || 'نامشخص'
     },
 
     getStatusText(status) {

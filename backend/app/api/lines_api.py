@@ -13,6 +13,22 @@ def require_auth(request: Request):
         return False
     return True
 
+# تابع مرتب‌سازی فارسی در پایتون
+def persian_sort_key(text):
+    """مرتب‌سازی بر اساس الفبای فارسی"""
+    persian_alphabet = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی'
+    
+    if not text:
+        return []
+    
+    result = []
+    for char in text:
+        if char in persian_alphabet:
+            result.append(persian_alphabet.index(char))
+        else:
+            result.append(ord(char))
+    return result
+
 
 def line_to_response(l: Line) -> LineResponse:
     return LineResponse(
@@ -32,7 +48,7 @@ async def list_lines(
     q: str = Query(""),
     min_price: float = Query(None),
     max_price: float = Query(None),
-    per_page: int = Query(10, ge=1, le=100),
+    per_page: int = Query(5, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     if not require_auth(request):
@@ -53,23 +69,34 @@ async def list_lines(
     if max_price is not None:
         query = query.filter(Line.price <= max_price)
 
-    # مرتب‌سازی
-    order_map = {
-        "name_line": Line.name_line,
-        "price": Line.price,
-    }
-    order_col = order_map.get(sort, Line.id)
-    query = query.order_by(order_col)
 
-    total = query.count()
-    lines = query.offset((page - 1) * per_page).limit(per_page).all()
+    # دریافت همه داده‌ها برای مرتب‌سازی در پایتون
+    all_lines = query.all()
+    
+    # مرتب‌سازی در پایتون با استفاده از persian_sort_key
+    order_map = {
+        "default": lambda: sorted(all_lines, key=lambda x: x.id),
+        "name_line": lambda: sorted(all_lines, key=lambda x: persian_sort_key(x.name_line or '')),
+        "name_service": lambda: sorted(all_lines, key=lambda x: persian_sort_key(x.name_service or '')),
+        "price": lambda: sorted(all_lines, key=lambda x: x.price or 0),
+    }
+    
+    # اجرای مرتب‌سازی
+    sorted_lines = order_map.get(sort, order_map["default"])()
+    
+    # صفحه‌بندی در پایتون
+    total = len(sorted_lines)
+    
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_lines = sorted_lines[start:end]
 
     return {
         "total": total,
         "page": page,
         "per_page": per_page,
         "total_pages": max(1, (total + per_page - 1) // per_page),
-        "lines": [line_to_response(l) for l in lines],
+        "lines": [line_to_response(l) for l in paginated_lines],
     }
 
 

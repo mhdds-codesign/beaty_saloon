@@ -5,8 +5,9 @@ from typing import Optional
 class CustomerBase(BaseModel):
     name: str
     phone_number: str 
-    notes: str
-    address: str
+    notes: Optional[str] = None
+    address: Optional[str] = None
+    register_date: Optional[str] = None
 
 
 class CustomerCreate(CustomerBase):
@@ -18,6 +19,7 @@ class CustomerUpdate(BaseModel):
     phone: Optional[str] = None
     notes: Optional[str] = None
     address: Optional[str] = None
+    register_date: Optional[str] = None
 
 
 class CustomerResponse(CustomerBase):

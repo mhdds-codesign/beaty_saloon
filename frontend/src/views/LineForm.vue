@@ -27,7 +27,7 @@
           </div>
           <div class="form-group col-6">
             <label>مدت زمان (دقیقه) <span class="text-danger">*</span></label>
-            <input v-model.number="form.duration" type="number" min="0" required />
+            <input v-model.number="form.duration_minutes" type="number" min="0" required />
           </div>
         </div>
 
@@ -69,7 +69,7 @@ export default {
         name_line: '',
         name_service: '',
         price: 0,
-        duration: 0,
+        duration_minutes: 0,
         description: ''
       }
     }
@@ -85,7 +85,7 @@ export default {
           name_line: line.name_line || '',
           name_service: line.name_service || '',
           price: line.price || 0,
-          duration: line.duration || 0,
+          duration_minutes: line.duration_minutes || 0,
           description: line.description || ''
         }
       } catch (e) {
