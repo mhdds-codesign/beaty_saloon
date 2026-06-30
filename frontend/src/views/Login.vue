@@ -68,9 +68,9 @@ export default {
 
       try {
         await api.login(this.username, this.password)
-        
-        // بعد از لاگین موفق به داشبورد می‌رویم
         this.$router.push('/')
+        
+        alert('تبریک! شما با موفقیت وارد شدید.')
         
       } catch (e) {
         this.error = e.message || 'نام کاربری یا رمز عبور اشتباه است'

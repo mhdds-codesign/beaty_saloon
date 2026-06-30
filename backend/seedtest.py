@@ -66,7 +66,9 @@ db.flush()
 print(f"👥 {len(customers)} customers created")
 
 # ==================== 4. ساعات کاری (Work Schedules) ====================
+# ==================== 4. ساعات کاری (Work Schedules) ====================
 weekdays = ["شنبه", "یکشنبه", "دوشنبه", "سه شنبه", "چهارشنبه"]
+
 time_slots = [
     ("09:00", "11:00"),
     ("11:00", "13:00"),
@@ -75,22 +77,28 @@ time_slots = [
     ("17:00", "19:00"),
 ]
 
+# گرفتن نام لاین‌های یکتا
+unique_line_names = {line.name_line for line in lines}   # Set برای حذف تکراری‌ها
+
 schedules = []
-for line in lines:
+created_count = 0
+
+for line_name in sorted(unique_line_names):     
     for wd in weekdays:
         for start, end in time_slots:
-            ws = WorkSchedule(
-                line_id=line.id,
-                weekday=wd,
-                start_time=start,
-                end_time=end,
-                status="free"
-            )
-            db.add(ws)
-            schedules.append(ws)
+                ws = WorkSchedule(
+                    line_name=line_name,         
+                    weekday=wd,
+                    start_time=start,
+                    end_time=end,
+                    status="free"
+                )
+                db.add(ws)
+                schedules.append(ws)
+                created_count += 1
 
-db.flush()
-print(f"🕒 {len(schedules)} work schedule slots created (2-hour slots, Sat-Wed)")
+db.flush()          # commit به جای flush
+print(f"🕒 {created_count} work schedule slots created for {len(unique_line_names)} unique line names.")
 
 # ==================== 5. رزروهای نمونه ====================
 # چند رزرو نمونه برای تست
@@ -105,7 +113,7 @@ reservation_examples = [
 for line, customer, weekday, start_time in reservation_examples:
     # پیدا کردن schedule_id
     schedule = db.query(WorkSchedule).filter(
-        WorkSchedule.line_id == line.id,
+        WorkSchedule.line_name == line.name_line,
         WorkSchedule.weekday == weekday,
         WorkSchedule.start_time == start_time
     ).first()

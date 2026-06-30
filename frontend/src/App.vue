@@ -19,12 +19,12 @@
           </li>
           <li>
             <router-link to="/lines">
-              <i class="fas fa-cut"></i> خدمات و لاین‌ها
+              <i class="fas fa-cut"></i> سرویس ها و لاین‌ها
             </router-link>
           </li>
           <li>
             <router-link to="/reservations">
-              <i class="fas fa-calendar-check"></i> رزروها
+              <i class="fas fa-calendar-check"></i> نوبت ها
             </router-link>
           </li>
           <li>

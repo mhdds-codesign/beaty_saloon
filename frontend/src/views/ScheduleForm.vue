@@ -11,15 +11,15 @@
 
       <form @submit.prevent="doSave">
         <div class="form-group">
-          <label>لاین / خدمت <span class="text-danger">*</span></label>
-          <select v-model.number="form.line_id" required>
+          <label>لاین  <span class="text-danger">*</span></label>
+          <select v-model="form.line_name" required>
             <option value="">انتخاب لاین</option>
             <option 
               v-for="line in lines" 
               :key="line.id" 
-              :value="line.id"
+              :value="line.name_line" 
             >
-              {{ line.name_line }} — {{ line.name_service }}
+              {{ line.name_line }}
             </option>
           </select>
         </div>
@@ -89,7 +89,7 @@ export default {
         { start: "17:00", end: "19:00" }
       ],
       form: {
-        line_id: null,
+        line_name: '',
         weekday: 0,
         start_time: '',
         end_time: '',
@@ -107,7 +107,7 @@ export default {
       try {
         const schedule = await api.schedule(id)
         this.form = {
-          line_id: schedule.line_id,
+          line_name: schedule.line_name,
           weekday: schedule.weekday,
           start_time: schedule.start_time,
           end_time: schedule.end_time,
@@ -126,7 +126,7 @@ export default {
         this.lines = res.lines || []
       } catch (e) {
         console.error('خطا در لود لاین‌ها', e)
-        this.error = 'خطا در دریافت لیست خدمات'
+        this.error = 'خطا در دریافت لیست لاین ها'
       }
     },
 
@@ -144,8 +144,10 @@ export default {
       try {
         if (this.isEdit) {
           await api.updateSchedule(this.$route.params.id, this.form)
+          alert('اطلاعات برنامه کاری با موفقیت بروزرسانی شد')
         } else {
           await api.createSchedule(this.form)
+          alert('اطلاعات برنامه کاری با موفقیت ثبت شد')
         }
         this.$router.push('/schedules')
       } catch (e) {

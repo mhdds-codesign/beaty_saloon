@@ -45,7 +45,7 @@ async def list_lines(
     request: Request,
     sort: str = Query("default"),
     page: int = Query(1, ge=1),
-    q: str = Query(""),
+    search: str = Query(""),
     min_price: float = Query(None),
     max_price: float = Query(None),
     per_page: int = Query(5, ge=1, le=100),
@@ -57,18 +57,11 @@ async def list_lines(
     query = db.query(Line)
     
     # جستجو
-    if q:
+    if search:
         query = query.filter(
-            Line.name_line.ilike(f"%{q}%") | 
-            Line.name_service.ilike(f"%{q}%")
+            Line.name_line.ilike(f"%{search}%") | 
+            Line.name_service.ilike(f"%{search}%")
         )
-    
-    # فیلتر قیمت
-    if min_price is not None:
-        query = query.filter(Line.price >= min_price)
-    if max_price is not None:
-        query = query.filter(Line.price <= max_price)
-
 
     # دریافت همه داده‌ها برای مرتب‌سازی در پایتون
     all_lines = query.all()

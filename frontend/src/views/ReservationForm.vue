@@ -23,9 +23,9 @@
 
         <!-- انتخاب لاین -->
         <div class="form-group">
-          <label>خدمت / لاین <span class="text-danger">*</span></label>
+          <label>سرویس / لاین <span class="text-danger">*</span></label>
           <select v-model.number="form.line_id" required @change="onLineChange">
-            <option value="">انتخاب خدمت</option>
+            <option value="">انتخاب سرویس</option>
             <option v-for="line in lines" :key="line.id" :value="line.id">
               {{ line.name_line }} — {{ line.name_service }} — {{ line.price }}
             </option>
@@ -155,6 +155,7 @@ export default {
           if (!exists) {
             slots.push({
               id: currentSlotId,
+              line_id: line_id,
               weekday: reservation.weekday || 'نامشخص',
               start_time: reservation.start_time || '--:--',
               end_time: reservation.end_time || '--:--'
@@ -189,8 +190,10 @@ export default {
       try {
         if (this.isEdit) {
           await api.updateReservation(this.$route.params.id, this.form)
+          alert('اطلاعات نوبت با موفقیت بروزرسانی شد')
         } else {
           await api.createReservation(this.form)
+          alert('اطلاعات نوبت با موفقیت ثبت شد')
         }
         this.$router.push('/reservations')
       } catch (e) {

@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 class WorkScheduleBase(BaseModel):
-    line_id: int
+    line_name: str
     weekday: str
     start_time: str
     end_time: str
@@ -12,7 +12,7 @@ class WorkScheduleCreate(WorkScheduleBase):
     pass
 
 class WorkScheduleUpdate(BaseModel):
-    line_id: Optional[int] = None
+    line_name: Optional[str] = None
     weekday: Optional[str] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None
@@ -21,7 +21,6 @@ class WorkScheduleUpdate(BaseModel):
 class WorkScheduleResponse(WorkScheduleBase):
     id: int
     name_line: Optional[str] = None        # از جدول lines
-    name_service: Optional[str] = None
      
     class Config:
         from_attributes = True

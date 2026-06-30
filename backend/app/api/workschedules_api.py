@@ -15,48 +15,52 @@ def require_auth(request: Request):
 
 
 def schedule_to_response(s: WorkSchedule) -> WorkScheduleResponse:
-    line = getattr(s, 'line', None)
 
     return WorkScheduleResponse(
         id=s.id,
-        line_id=s.line_id,
+        line_name=s.line_name,
         weekday=s.weekday,
         start_time=s.start_time,
         end_time=s.end_time,
         status=s.status,
-        name_line=line.name_line if line else None,
     )
 
 
 @router.get("")
 async def list_schedules(
     request: Request,
-    line_id: int = Query(None),
-    status: str = Query(None),
+    status: str = Query(None, description="فیلتر بر اساس وضعیت"),
+    search: str = Query(None, description="جستجو بر اساس نام لاین"),
     page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
+    per_page: int = Query(20, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
     if not require_auth(request):
         return JSONResponse(status_code=401, content={"message": "Not authenticated"})
 
+    # کوئری پایه
     query = db.query(WorkSchedule)
 
-    if line_id is not None:
-        query = query.filter(WorkSchedule.line_id == line_id)
+    # فیلتر وضعیت
     if status:
         query = query.filter(WorkSchedule.status == status)
 
+    # جستجو بر اساس نام لاین
+    if search:
+        query = query.filter(WorkSchedule.line_name.ilike(f"%{search}%"))
+
+    # محاسبه تعداد کل (درست و بدون تکرار)
     total = query.count()
+
+    # دریافت داده‌ها با join فقط برای نمایش اطلاعات اضافی
     schedules = (
-        db.query(WorkSchedule)
-        .options(joinedload(WorkSchedule.line))
-        .order_by(WorkSchedule.line_id, WorkSchedule.weekday)
+        query
+        .order_by(WorkSchedule.line_name, WorkSchedule.weekday, WorkSchedule.start_time)
         .offset((page - 1) * per_page)
         .limit(per_page)
         .all()
     )
-
+    
     return {
         "total": total,
         "page": page,
@@ -64,6 +68,7 @@ async def list_schedules(
         "total_pages": max(1, (total + per_page - 1) // per_page),
         "schedules": [schedule_to_response(s) for s in schedules],
     }
+
 
 
 @router.get("/{schedule_id}")
@@ -92,12 +97,27 @@ async def create_schedule(
     if not require_auth(request):
         return JSONResponse(status_code=401, content={"message": "Not authenticated"})
 
-    line = db.query(Line).filter(Line.id == body.line_id).first()
+    # تمیز کردن داده‌های ورودی
+    line_name = body.line_name.strip()
+    weekday = body.weekday.strip()
+    start_time = body.start_time.strip()
+
+    line = db.query(Line).filter(Line.name_line == body.line_name).first()
     if not line:
-        raise HTTPException(status_code=404, detail="Line not found")
+        raise HTTPException(404, "لاینی به این اسم یافت نشد")
+    
+    # چک وجود برنامه تکراری (قوی‌تر)
+    existing = db.query(WorkSchedule).filter(
+        WorkSchedule.line_name == line_name,
+        WorkSchedule.weekday == weekday,
+        WorkSchedule.start_time == start_time,
+    ).first()
+
+    if existing:
+        raise HTTPException(400, "برای این لاین قبلا برنامه زمانی ثبت شده است")
 
     schedule = WorkSchedule(
-        line_id=body.line_id,
+        line_name=body.line_name,
         weekday=body.weekday,
         start_time=body.start_time,
         end_time=body.end_time,

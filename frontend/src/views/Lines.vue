@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2><i class="fas fa-box"></i> خدمات و لاین‌ها</h2>
+    <h2><i class="fas fa-box"></i> سرویس ها و لاین‌ها</h2>
 
     <!-- فیلتر و جستجو -->
     <div class="card">
@@ -9,7 +9,7 @@
         <div class="d-flex gap-2" style="flex-wrap:wrap;">
           <div style="flex:2;">
             <label>جستجو</label>
-            <input v-model="filters.q" placeholder="نام لاین یا خدمت..." />
+            <input v-model="filters.q" placeholder="نام لاین یا سرویس..." />
           </div>
           
           <div style="align-self:flex-end;">
@@ -26,7 +26,7 @@
 
     <div style="margin:1rem 0;">
       <router-link to="/lines/new" class="btn btn-primary">
-        <i class="fas fa-plus"></i> خدمت / لاین جدید
+        <i class="fas fa-plus"></i> سرویس / لاین جدید
       </router-link>
     </div>
 
@@ -48,7 +48,7 @@
 
       <div v-else class="card">
         <div class="card-header">
-          <i class="fas fa-table"></i> همه خدمات ({{ total }})
+          <i class="fas fa-table"></i> همه سرویس ها ({{ total }})
         </div>
         <div class="card-body" style="padding:0;">
           <table class="table">
@@ -56,7 +56,7 @@
               <tr>
                 <th>ID</th>
                 <th>نام لاین</th>
-                <th>نام خدمت</th>
+                <th>نام سرویس</th>
                 <th>قیمت</th>
                 <th>مدت زمان (دقیقه)</th>
                 <th>عملیات</th>
@@ -85,7 +85,7 @@
                 </td>
               </tr>
               <tr v-if="!lines.length">
-                <td colspan="6" class="text-center py-4">هنوز خدمتی ثبت نشده است.</td>
+                <td colspan="6" class="text-center py-4">هنوز سرویسی ثبت نشده است.</td>
               </tr>
             </tbody>
           </table>
@@ -144,7 +144,7 @@ export default {
       sortOptions: [
         { key: 'default', label: 'پیش‌فرض' },
         { key: 'name_line', label: 'نام لاین' },
-        { key: 'name_service', label: 'نام خدمت' },
+        { key: 'name_service', label: 'نام سرویس' },
         { key: 'price', label: 'قیمت' }
       ]
     }
@@ -160,7 +160,7 @@ export default {
           sort: this.filters.sort, 
           page: this.page 
         }
-        if (this.filters.q) params.q = this.filters.q
+        if (this.filters.q) params.search = this.filters.q
 
         const res = await api.lines(params)
         
@@ -169,7 +169,7 @@ export default {
         this.totalPages = res.total_pages || 1
       } catch (e) {
         console.error(e)
-        alert('خطا در بارگذاری خدمات: ' + (e.message || ''))
+        alert('خطا در بارگذاری سرویس ها: ' + (e.message || ''))
       } finally {
         this.loading = false
       }
@@ -188,11 +188,11 @@ export default {
     },
 
     async doDelete(line) {
-      if (!confirm(`آیا از حذف خدمت "${line.name_service}" مطمئن هستید؟`)) return
+      if (!confirm(`آیا از حذف سرویس "${line.name_service}" مطمئن هستید؟`)) return
       
       try {
         await api.deleteLine(line.id)
-        alert('خدمت با موفقیت حذف شد')
+        alert('سرویس با موفقیت حذف شد')
         this.load()
       } catch (e) {
         alert('خطا در حذف: ' + (e.message || ''))

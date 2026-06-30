@@ -13,5 +13,8 @@ class Line(Base):
     price = Column(Float, nullable=False, default=0.0)               
     name_service = Column(String, nullable=False)            # TEXT (در دیاگرام موجود است)
 
-    work_schedules = relationship("WorkSchedule", back_populates="line")
+    work_schedules = relationship("WorkSchedule", 
+                                 primaryjoin="Line.name_line == WorkSchedule.line_name",
+                                 back_populates="line",
+                                 cascade="all, delete-orphan")
     reservations = relationship("Reservation", back_populates="line")

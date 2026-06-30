@@ -94,8 +94,10 @@ export default {
       try {
         if (this.isEdit) {
           await api.updateCustomer(this.$route.params.id, this.form)
+          alert('اطلاعات مشتری با موفقیت بروزرسانی شد')
         } else {
           await api.createCustomer(this.form)
+          alert('اطلاعات مشتری با موفقیت ثبت شد')
         }
 
         this.$router.push('/customers')

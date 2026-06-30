@@ -136,7 +136,6 @@ export default {
         const res = await api.customers({
           sort: this.sort,
           page: this.page
-          // per_page اگر خواستی بعداً اضافه کن
         })
         
         this.customers = res.customers || []

@@ -20,7 +20,7 @@
                 <td>{{ reservation.customer_name || '—' }}</td>
               </tr>
               <tr>
-                <td><strong>خدمت</strong></td>
+                <td><strong>لاین / سرویس</strong></td>
                 <td>
                   <strong>{{ reservation.name_line }}</strong> — 
                   {{ reservation.name_service }}
@@ -55,9 +55,10 @@
                   <button 
                     class="btn btn-sm btn-primary" 
                     @click="updateStatus"
+                    :disabled="saving"
                     style="margin-left:8px;"
                   >
-                    بروزرسانی وضعیت
+                  {{ saving ? 'در حال ذخیره...' : ' بروزرسانی وضعیت' }}
                   </button>
                 </td>
               </tr>
@@ -88,6 +89,7 @@ export default {
     return {
       reservation: null,
       loading: true,
+      saving: false,
       newStatus: 'confirmed'
     }
   },
@@ -109,13 +111,16 @@ export default {
 
     async updateStatus() {
       if (!this.newStatus) return
-      
+      this.saving = true
       try {
         const updated = await api.updateReservationStatus(this.$route.params.id, this.newStatus)
         alert('وضعیت نوبت با موفقیت بروزرسانی شد')
         this.$router.push('/reservations')
+        
       } catch (e) {
         alert('خطا در بروزرسانی وضعیت: ' + (e.message || ''))
+      } finally {
+        this.saving = false
       }
     },
 

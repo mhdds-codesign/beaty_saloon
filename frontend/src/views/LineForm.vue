@@ -2,7 +2,7 @@
   <div class="card" style="max-width: 560px; margin: 2rem auto;">
     <div class="card-header">
       <i :class="'fas ' + (isEdit ? 'fa-pen' : 'fa-plus')"></i>
-      {{ isEdit ? 'ویرایش خدمت / لاین' : 'خدمت / لاین جدید' }}
+      {{ isEdit ? 'ویرایش سرویس / لاین' : 'سرویس / لاین جدید' }}
     </div>
     <div class="card-body">
       <div v-if="error" class="error-msg">
@@ -12,11 +12,11 @@
       <form @submit.prevent="doSave">
         <div class="form-group">
           <label>نام لاین <span class="text-danger">*</span></label>
-          <input v-model="form.name_line" type="text" required placeholder="مثال: رنگ مو، کوتاهی، ..." />
+          <input v-model="form.name_line" type="text" required placeholder="مثال: مو ، میکاپ، ..." />
         </div>
 
         <div class="form-group">
-          <label>نام خدمت <span class="text-danger">*</span></label>
+          <label>نام سرویس <span class="text-danger">*</span></label>
           <input v-model="form.name_service" type="text" required placeholder="مثال: رنگساژ لایت، کوتاهی مردانه" />
         </div>
 
@@ -31,11 +31,6 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label>توضیحات / یادداشت</label>
-          <textarea v-model="form.description" rows="4" placeholder="توضیحات اضافی، شرایط، ..."></textarea>
-        </div>
-
         <div class="d-flex gap-2 mt-4">
           <button 
             type="submit" 
@@ -44,7 +39,7 @@
             style="flex: 1;"
           >
             <i class="fas fa-save"></i>
-            {{ saving ? 'در حال ذخیره...' : (isEdit ? 'به‌روزرسانی' : 'ثبت خدمت') }}
+            {{ saving ? 'در حال ذخیره...' : (isEdit ? 'به‌روزرسانی' : 'ثبت سرویس') }}
           </button>
           <router-link to="/lines" class="btn btn-secondary" style="flex: 1;">
             انصراف
@@ -70,7 +65,6 @@ export default {
         name_service: '',
         price: 0,
         duration_minutes: 0,
-        description: ''
       }
     }
   },
@@ -86,10 +80,9 @@ export default {
           name_service: line.name_service || '',
           price: line.price || 0,
           duration_minutes: line.duration_minutes || 0,
-          description: line.description || ''
         }
       } catch (e) {
-        this.error = 'خطا در دریافت اطلاعات خدمت'
+        this.error = 'خطا در دریافت اطلاعات سرویس'
         console.error(e)
       }
     }
@@ -102,8 +95,10 @@ export default {
       try {
         if (this.isEdit) {
           await api.updateLine(this.$route.params.id, this.form)
+          alert('اطلاعات لاین / سرویس با موفقیت بروزرسانی شد')
         } else {
           await api.createLine(this.form)
+          alert('اطلاعات لاین / سرویس با موفقیت ثبت شد')
         }
 
         this.$router.push('/lines')

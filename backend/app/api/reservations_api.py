@@ -49,7 +49,11 @@ async def get_available_slots(
     query = db.query(WorkSchedule).filter(WorkSchedule.status == "free")
 
     if line_id is not None:
-        query = query.filter(WorkSchedule.line_id == line_id)
+        # پیدا کردن نام لاین از روی id
+        line = db.query(Line).filter(Line.id == line_id).first()
+        if line:
+            query = query.filter(WorkSchedule.line_name == line.name_line)
+
 
     slots = query.all()
 
@@ -58,7 +62,7 @@ async def get_available_slots(
         "slots": [
             {
                 "id": s.id,
-                "line_id": s.line_id,
+                "line_id": line_id,
                 "weekday": s.weekday,
                 "start_time": s.start_time,
                 "end_time": s.end_time,
@@ -74,19 +78,33 @@ async def list_reservations(
     request: Request,
     page: int = Query(1, ge=1),
     per_page: int = Query(5, ge=1, le=100),
-    status: str = Query(None),
+    status: str = Query(None, description="فیلتر بر اساس وضعیت"),
+    search: str = Query(None, description="جستجو بر اساس نام لاین یا نام خدمت"),
     db: Session = Depends(get_db),
 ):
     if not require_auth(request):
         return JSONResponse(status_code=401, content={"message": "Not authenticated"})
 
-    query = db.query(Reservation)
+    # شروع کوئری با join به Line
+    query = db.query(Reservation).join(Line, Reservation.line_id == Line.id)
+    
+    # فیلتر بر اساس وضعیت
     if status:
         query = query.filter(Reservation.status == status)
+    
+    # جستجو بر اساس نام لاین یا نام خدمت
+    if search:
+        query = query.filter(
+            Line.name_line.ilike(f"%{search}%") | 
+            Line.name_service.ilike(f"%{search}%")
+        )
 
+    # شمارش کل
     total = query.count()
+    
+    # دریافت داده‌ها با صفحه‌بندی
     reservations = (
-        db.query(Reservation)
+        query
         .options(joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.work_schedule))
         .order_by(Reservation.id.desc())
         .offset((page - 1) * per_page)

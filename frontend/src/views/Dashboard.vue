@@ -8,7 +8,7 @@
       <!-- آمار کلی -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:2rem;margin:1.5rem 0;">
         <div class="card text-center">
-          <div class="card-header">تعداد خدمات</div>
+          <div class="card-header">تعداد سرویس ها</div>
           <div class="card-body">
             <span style="font-size:2.5rem;font-weight:700;color:#2b9348;">{{ data.total_services }}</span>
           </div>
@@ -43,7 +43,7 @@
         </div>
 
         <div class="card text-center" v-if="data.most_popular_service">
-          <div class="card-header">محبوب‌ترین خدمت</div>
+          <div class="card-header">شلوغ ترین سرویس</div>
           <div class="card-body">
             <strong>{{ data.most_popular_service.name_service }}</strong><br>
             <small>{{ data.most_popular_service.name_line }}</small>
@@ -65,7 +65,10 @@
               <tr>
                 <th>#</th>
                 <th>مشتری</th>
-                <th>خدمت</th>
+                <th>
+                  <strong>لاین</strong><br>
+                  <small>سرویس</small>
+                </th>
                 <th>قیمت</th>
                 <th>وضعیت</th>
                 <th></th>
@@ -76,7 +79,7 @@
                 <td>#{{ res.id }}</td>
                 <td>{{ res.customer_name }}</td>
                 <td>
-                  {{ res.line_name }}<br>
+                  <strong>{{ res.line_name }}</strong><br>
                   <small>{{ res.service_name }}</small>
                 </td>
                 <td>{{ res.total_price.toLocaleString() }} تومان</td>
@@ -105,13 +108,13 @@
           <i class="fas fa-plus"></i> مشتری جدید
         </router-link>
         <router-link to="/lines/new" class="btn btn-primary">
-          <i class="fas fa-plus"></i> خدمت جدید
+          <i class="fas fa-plus"></i>لاین / سرویس جدید
         </router-link>
         <router-link to="/reservations/new" class="btn btn-primary">
           <i class="fas fa-plus"></i> نوبت جدید
         </router-link>
         <router-link to="/schedules/new" class="btn btn-primary">
-          <i class="fas fa-plus"></i> برنامه کاری
+          <i class="fas fa-plus"></i> برنامه کاری جدید
         </router-link>
       </div>
     </template>
