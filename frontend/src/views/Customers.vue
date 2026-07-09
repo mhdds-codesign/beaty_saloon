@@ -26,7 +26,7 @@
 
     <div v-else class="card">
       <div class="card-header">
-        <i class="fas fa-table"></i> همه مشتریان ({{ total }})
+         همه مشتریان ({{ total }})
       </div>
       <div class="card-body" style="padding:0;">
         <table class="table">

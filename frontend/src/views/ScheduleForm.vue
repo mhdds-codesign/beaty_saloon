@@ -1,7 +1,6 @@
 <template>
   <div class="card" style="max-width: 560px; margin: 2rem auto;">
     <div class="card-header">
-      <i :class="'fas ' + (isEdit ? 'fa-pen' : 'fa-plus')"></i>
       {{ isEdit ? 'ویرایش برنامه کاری' : 'برنامه کاری جدید' }}
     </div>
     <div class="card-body">
@@ -13,7 +12,6 @@
         <div class="form-group">
           <label>لاین  <span class="text-danger">*</span></label>
           <select v-model="form.line_name" required>
-            <option value="">انتخاب لاین</option>
             <option 
               v-for="line in lines" 
               :key="line.id" 

@@ -7,38 +7,39 @@
     <template v-else-if="data">
       <!-- آمار کلی -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:2rem;margin:1.5rem 0;">
-        <div class="card text-center">
-          <div class="card-header">تعداد سرویس ها</div>
-          <div class="card-body">
-            <span style="font-size:2.5rem;font-weight:700;color:#2b9348;">{{ data.total_services }}</span>
-          </div>
-        </div>
 
         <div class="card text-center">
           <div class="card-header">تعداد لاین ها</div>
           <div class="card-body">
-            <span style="font-size:2.5rem;font-weight:700;color:#2b9348;">{{ data.total_line_types }}</span>
+            <span style="font-size:2.5rem;font-weight:700;color:#ff6b9d;">{{ data.total_line_types }}</span>
+          </div>
+        </div>
+
+        <div class="card text-center">
+          <div class="card-header">تعداد سرویس ها</div>
+          <div class="card-body">
+            <span style="font-size:2.5rem;font-weight:700;color:#ff6b9d;">{{ data.total_services }}</span>
           </div>
         </div>
 
         <div class="card text-center">
           <div class="card-header">تعداد مشتریان</div>
           <div class="card-body">
-            <span style="font-size:2.5rem;font-weight:700;color:#2b9348;">{{ data.total_customers }}</span>
+            <span style="font-size:2.5rem;font-weight:700;color:#ff6b9d;">{{ data.total_customers }}</span>
           </div>
         </div>
 
         <div class="card text-center">
           <div class="card-header">تعداد نوبت‌ها</div>
           <div class="card-body">
-            <span style="font-size:2.5rem;font-weight:700;color:#2b9348;">{{ data.total_reservations }}</span>
+            <span style="font-size:2.5rem;font-weight:700;color:#ff6b9d;">{{ data.total_reservations }}</span>
           </div>
         </div>
 
         <div class="card text-center">
           <div class="card-header">درآمد کل</div>
           <div class="card-body">
-            <span style="font-size:2rem;font-weight:700;color:#2b9348;">{{ data.total_revenue.toLocaleString() }} تومان</span>
+            <span style="font-size:1.75rem;font-weight:700;color:#ff6b9d;">{{ data.total_revenue.toLocaleString() }} تومان</span>
           </div>
         </div>
 
@@ -55,11 +56,11 @@
       </div>
       
       <!-- آخرین نوبت‌ها -->
-      <div class="card mt-4">
+      <div class="card">
         <div class="card-header">
-          <i class="fas fa-clock"></i> آخرین نوبت‌ها
+          آخرین نوبت‌ها
         </div>
-        <div class="card-body p-0">
+        <div class="card-body" style="padding:0;">
           <table class="table">
             <thead>
               <tr>

@@ -1,7 +1,7 @@
 <template>
   <div class="card" style="max-width: 420px; margin: 4rem auto;">
     <div class="card-header">
-      <i class="fas fa-lock"></i> Admin Login
+     فرم ورود
     </div>
     <div class="card-body">
       <div v-if="error" class="error-msg">
@@ -68,7 +68,8 @@ export default {
 
       try {
         await api.login(this.username, this.password)
-        this.$router.push('/')
+        // this.$router.push('/')
+        window.location.href = '/'
         
         alert('تبریک! شما با موفقیت وارد شدید.')
         

@@ -1,7 +1,6 @@
 <template>
   <div class="card" style="max-width: 520px; margin: 2rem auto;">
     <div class="card-header">
-      <i :class="'fas ' + (isEdit ? 'fa-pen' : 'fa-plus')"></i>
       {{ isEdit ? 'ویرایش مشتری' : 'مشتری جدید' }}
     </div>
     <div class="card-body">
@@ -16,8 +15,8 @@
         </div>
 
         <div class="form-group">
-          <label>شماره تلفن <span class="text-danger">*</span></label>
-          <input v-model="form.phone_number" type="tel" required />
+          <label>شماره تلفن<span class="text-danger">*</span></label>
+          <input v-model="form.phone_number" type="tel" pattern="09[0-9]{9}" placeholder="شماره تلفن باید با 09 شروع و 11 رقم باشد" />
         </div>
 
         <div class="form-group">
@@ -40,7 +39,7 @@
             <i class="fas fa-save"></i>
             {{ saving ? 'در حال ذخیره...' : (isEdit ? 'به‌روزرسانی' : 'ثبت مشتری') }}
           </button>
-          <router-link to="/customers" class="btn btn-secondary" style="flex: 1;">
+          <router-link to="/customers" class="btn btn-secondary"  style="flex: 1;">
             انصراف
           </router-link>
         </div>

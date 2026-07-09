@@ -1,7 +1,6 @@
 <template>
   <div class="card" style="max-width: 560px; margin: 2rem auto;">
     <div class="card-header">
-      <i :class="'fas ' + (isEdit ? 'fa-pen' : 'fa-plus')"></i>
       {{ isEdit ? 'ویرایش سرویس / لاین' : 'سرویس / لاین جدید' }}
     </div>
     <div class="card-body">

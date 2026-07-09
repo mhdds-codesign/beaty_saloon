@@ -4,7 +4,7 @@
 
     <!-- فیلتر و جستجو -->
     <div class="card">
-      <div class="card-header"><i class="fas fa-filter"></i> جستجو و فیلتر</div>
+      <div class="card-header"> جستجو و فیلتر</div>
       <div class="card-body">
         <div class="d-flex gap-2" style="flex-wrap:wrap;">
           <div style="flex:2;">
@@ -44,7 +44,7 @@
 
     <div v-else class="card">
       <div class="card-header">
-        <i class="fas fa-table"></i> همه نوبت‌ها ({{ total }})
+       همه نوبت‌ها ({{ total }})
       </div>
       <div class="card-body" style="padding:0;">
         <table class="table">
@@ -83,7 +83,7 @@
               <td>
                 <router-link 
                   :to="`/reservations/${res.id}`" 
-                  class="btn btn-sm btn-info"
+                  class="btn btn-sm btn-primary"
                 >
                   <i class="fas fa-eye"></i>
                 </router-link>
@@ -199,7 +199,6 @@ export default {
 
     getStatusText(status) {
       const map = {
-        pending: 'در انتظار',
         confirmed: 'تایید شده',
         completed: 'انجام شده',
         cancelled: 'لغو شده'
@@ -209,9 +208,8 @@ export default {
 
     getStatusClass(status) {
       const map = {
-        pending: 'bg-warning',
-        confirmed: 'bg-success',
-        completed: 'bg-info',
+        confirmed: 'bg-warning',
+        completed: 'bg-success',
         cancelled: 'bg-danger'
       }
       return map[status] || 'bg-secondary'

@@ -10,7 +10,7 @@
 
       <div class="card">
         <div class="card-header">
-          <i class="fas fa-info-circle"></i> اطلاعات نوبت
+           اطلاعات نوبت
         </div>
         <div class="card-body">
           <table class="table">
@@ -46,7 +46,7 @@
                     {{ getStatusText(reservation.status) }}
                   </span>
                   
-                  <select v-model="newStatus" class="btn-sm" style="width:auto; margin-left:12px;">
+                  <select v-model="newStatus" class="btn-sm" style="width:auto; margin-right:12px;">
                     <option value="confirmed">تایید شده</option>
                     <option value="completed">انجام شده</option>
                     <option value="cancelled">لغو شده</option>
@@ -56,7 +56,7 @@
                     class="btn btn-sm btn-primary" 
                     @click="updateStatus"
                     :disabled="saving"
-                    style="margin-left:8px;"
+                    style="margin-right:12px;"
                   >
                   {{ saving ? 'در حال ذخیره...' : ' بروزرسانی وضعیت' }}
                   </button>

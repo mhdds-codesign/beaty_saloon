@@ -4,7 +4,7 @@
 
     <!-- فیلتر و جستجو -->
     <div class="card">
-      <div class="card-header"><i class="fas fa-filter"></i> جستجو و فیلتر</div>
+      <div class="card-header"> جستجو و فیلتر</div>
       <div class="card-body">
         <div class="d-flex gap-2" style="flex-wrap:wrap;">
           <div style="flex:2;">
@@ -43,7 +43,7 @@
 
     <div v-else class="card">
       <div class="card-header">
-        <i class="fas fa-table"></i> همه برنامه‌ها ({{ total }})
+       همه برنامه‌ها ({{ total }})
       </div>
       <div class="card-body" style="padding:0;">
         <table class="table">

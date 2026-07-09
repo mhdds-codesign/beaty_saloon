@@ -3,7 +3,7 @@
     <nav class="navbar" v-if="loggedIn">
       <div class="container">
         <router-link to="/" class="navbar-brand">
-          <i class="fas fa-store"></i> Beauty Salon Manager
+         <i class="fas fa-spa" style="margin-left: 6px;"></i>پنل مدیریت رز بیوتی (rose beauty)
         </router-link>
         
         <ul class="navbar-nav">

@@ -4,7 +4,7 @@
 
     <!-- فیلتر و جستجو -->
     <div class="card">
-      <div class="card-header"><i class="fas fa-filter"></i> جستجو و فیلتر</div>
+      <div class="card-header">جستجو و فیلتر</div>
       <div class="card-body">
         <div class="d-flex gap-2" style="flex-wrap:wrap;">
           <div style="flex:2;">
@@ -48,7 +48,7 @@
 
       <div v-else class="card">
         <div class="card-header">
-          <i class="fas fa-table"></i> همه سرویس ها ({{ total }})
+           همه سرویس ها ({{ total }})
         </div>
         <div class="card-body" style="padding:0;">
           <table class="table">
@@ -70,6 +70,7 @@
                 <td>{{ line.price ? line.price.toLocaleString() + ' تومان' : '—' }}</td>
                 <td>{{ line.duration_minutes || '—' }}</td>
                 <td>
+                  <!-- <div style="display: inline-flex;"> -->
                   <router-link 
                     :to="`/lines/${line.id}/edit`" 
                     class="btn btn-warning btn-sm"
@@ -82,6 +83,7 @@
                   >
                     <i class="fas fa-trash-alt"></i>
                   </button>
+                  <!-- </div> -->
                 </td>
               </tr>
               <tr v-if="!lines.length">
