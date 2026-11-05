@@ -12,7 +12,7 @@
         <!-- انتخاب مشتری -->
         <div class="form-group">
           <label>مشتری <span class="text-danger">*</span></label>
-          <select v-model.number="form.customer_id" required>
+          <select v-model.number="form.customer_id" required :disabled="!isAdmin">
             <option value="">انتخاب مشتری</option>
             <option v-for="c in customers" :key="c.id" :value="c.id">
               {{ c.name }}
@@ -78,9 +78,15 @@
 
 <script>
 import api from '../api.js'
+import { auth } from '../auth.js'
 
 export default {
   name: 'ReservationForm',
+  computed: {
+    isAdmin() {
+      return auth.role === 'admin'
+    }
+  },
   data() {
     return {
       isEdit: false,
@@ -103,6 +109,15 @@ export default {
     
     const id = this.$route.params.id
     this.isEdit = !!id
+
+    // کاربر عادی فقط برای خودش رزرو می‌کند؛ مشتری را از قبل انتخاب می‌کنیم
+    if (!this.isAdmin) {
+      if (auth.customer_id) {
+        this.form.customer_id = auth.customer_id
+      } else if (this.customers.length === 1) {
+        this.form.customer_id = this.customers[0].id
+      }
+    }
 
     if (id) {
       try {

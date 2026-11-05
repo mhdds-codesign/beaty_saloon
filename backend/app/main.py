@@ -9,6 +9,8 @@ from starlette import status
 import hashlib
 from sqlalchemy.orm import Session
 
+from sqlalchemy import text
+
 from app.database import engine, Base, get_db
 from app.models import Admin
 
@@ -22,6 +24,21 @@ from app.api.workschedules_api import router as workschedules_router
 
 # ایجاد جداول دیتابیس (در صورت عدم وجود)
 Base.metadata.create_all(bind=engine)
+
+
+# ======================== مهاجرت سبک: افزودن ستون‌های نقش به جدول admins ========================
+# SQLite با create_all ستون جدید به جدول موجود اضافه نمی‌کند، پس دستی و به‌صورت idempotent اضافه می‌کنیم.
+def _ensure_admin_role_columns():
+    with engine.connect() as conn:
+        existing = {row[1] for row in conn.execute(text("PRAGMA table_info(admins)"))}
+        if "role" not in existing:
+            conn.execute(text("ALTER TABLE admins ADD COLUMN role VARCHAR NOT NULL DEFAULT 'admin'"))
+        if "customer_id" not in existing:
+            conn.execute(text("ALTER TABLE admins ADD COLUMN customer_id INTEGER"))
+        conn.commit()
+
+
+_ensure_admin_role_columns()
 
 app = FastAPI(
     title="Beauty Saloon Management System",

@@ -2,7 +2,8 @@ from fastapi import APIRouter, Request, Depends, Query, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
-from app.models import WorkSchedule, Line
+from app.models import WorkSchedule, Line, Admin
+from app.api.deps import require_admin
 from app.schemas.work_schedule import WorkScheduleCreate, WorkScheduleUpdate, WorkScheduleResponse
 
 router = APIRouter(prefix="/api/schedules", tags=["Schedules"])
@@ -92,11 +93,9 @@ async def get_schedule(
 
 @router.post("", status_code=201)
 async def create_schedule(
-    request: Request, body: WorkScheduleCreate, db: Session = Depends(get_db)
+    request: Request, body: WorkScheduleCreate, db: Session = Depends(get_db),
+    account: Admin = Depends(require_admin),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-
     # تمیز کردن داده‌های ورودی
     line_name = body.line_name.strip()
     weekday = body.weekday.strip()
@@ -133,14 +132,33 @@ async def create_schedule(
 
 @router.put("/{schedule_id}")
 async def update_schedule(
-    request: Request, schedule_id: int, body: WorkScheduleUpdate, db: Session = Depends(get_db)
+    request: Request, schedule_id: int, body: WorkScheduleUpdate, db: Session = Depends(get_db),
+    account: Admin = Depends(require_admin),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
 
     schedule = db.query(WorkSchedule).filter(WorkSchedule.id == schedule_id).first()
     if not schedule:
-        raise HTTPException(status_code=404, detail="Schedule not found")
+        raise HTTPException(status_code=404, detail="برنامه کاری یافت نشد")
+
+    # تمیز کردن داده‌های ورودی
+    line_name = body.line_name.strip()
+    weekday = body.weekday.strip()
+    start_time = body.start_time.strip()
+
+    line = db.query(Line).filter(Line.name_line == body.line_name).first()
+    if not line:
+        raise HTTPException(404, "لاینی به این اسم یافت نشد")
+    
+    # چک وجود برنامه تکراری - به جز خود رکورد جاری
+    existing = db.query(WorkSchedule).filter(
+        WorkSchedule.line_name == line_name,
+        WorkSchedule.weekday == weekday,
+        WorkSchedule.start_time == start_time,
+        WorkSchedule.id != schedule_id  # این شرط را اضافه کنید
+    ).first()
+
+    if existing:
+        raise HTTPException(400, "برای این لاین قبلا برنامه زمانی ثبت شده است")
 
     for key, value in body.model_dump(exclude_unset=True).items():
         setattr(schedule, key, value)
@@ -154,14 +172,33 @@ async def update_schedule(
 
 @router.patch("/{schedule_id}")
 async def patch_schedule(
-    request: Request, schedule_id: int, body: WorkScheduleUpdate, db: Session = Depends(get_db)
+    request: Request, schedule_id: int, body: WorkScheduleUpdate, db: Session = Depends(get_db),
+    account: Admin = Depends(require_admin),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-
+    
     schedule = db.query(WorkSchedule).filter(WorkSchedule.id == schedule_id).first()
     if not schedule:
-        raise HTTPException(status_code=404, detail="Schedule not found")
+        raise HTTPException(status_code=404, detail="برنامه کاری یافت نشد")
+
+    # تمیز کردن داده‌های ورودی
+    line_name = body.line_name.strip()
+    weekday = body.weekday.strip()
+    start_time = body.start_time.strip()
+
+    line = db.query(Line).filter(Line.name_line == body.line_name).first()
+    if not line:
+        raise HTTPException(404, "لاینی به این اسم یافت نشد")
+    
+    # چک وجود برنامه تکراری - به جز خود رکورد جاری
+    existing = db.query(WorkSchedule).filter(
+        WorkSchedule.line_name == line_name,
+        WorkSchedule.weekday == weekday,
+        WorkSchedule.start_time == start_time,
+        WorkSchedule.id != schedule_id  # این شرط را اضافه کنید
+    ).first()
+
+    if existing:
+        raise HTTPException(400, "برای این لاین قبلا برنامه زمانی ثبت شده است")
 
     for key, value in body.model_dump(exclude_unset=True).items():
         setattr(schedule, key, value)
@@ -169,17 +206,16 @@ async def patch_schedule(
     db.commit()
     db.refresh(schedule)
 
+
     schedule = db.query(WorkSchedule).options(joinedload(WorkSchedule.line)).filter(WorkSchedule.id == schedule.id).first()
     return schedule_to_response(schedule)
 
 
 @router.delete("/{schedule_id}")
 async def delete_schedule(
-    request: Request, schedule_id: int, db: Session = Depends(get_db)
+    request: Request, schedule_id: int, db: Session = Depends(get_db),
+    account: Admin = Depends(require_admin),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-
     schedule = db.query(WorkSchedule).filter(WorkSchedule.id == schedule_id).first()
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")

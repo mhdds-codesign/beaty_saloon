@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <div style="margin:1rem 0;">
+    <div style="margin:1rem 0;" v-if="isAdmin">
       <router-link to="/schedules/new" class="btn btn-primary">
         <i class="fas fa-plus"></i> برنامه کاری جدید
       </router-link>
@@ -55,7 +55,7 @@
               <th>ساعت شروع</th>
               <th>ساعت پایان</th>
               <th>وضعیت</th>
-              <th>عملیات</th>
+              <th v-if="isAdmin">عملیات</th>
             </tr>
           </thead>
           <tbody>
@@ -70,15 +70,15 @@
                   {{ getStatusText(s.status) }}
                 </span>
               </td>
-              <td>
-                <router-link 
-                  :to="`/schedules/${s.id}/edit`" 
+              <td v-if="isAdmin">
+                <router-link
+                  :to="`/schedules/${s.id}/edit`"
                   class="btn btn-warning btn-sm"
                 >
                   <i class="fas fa-edit"></i>
                 </router-link>
-                <button 
-                  class="btn btn-danger btn-sm" 
+                <button
+                  class="btn btn-danger btn-sm"
                   @click="doDelete(s)"
                 >
                   <i class="fas fa-trash-alt"></i>
@@ -128,9 +128,15 @@
 
 <script>
 import api from '../api.js'
+import { auth } from '../auth.js'
 
 export default {
   name: 'Schedules',
+  computed: {
+    isAdmin() {
+      return auth.role === 'admin'
+    }
+  },
   data() {
     return {
       schedules: [],

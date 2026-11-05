@@ -1,7 +1,7 @@
 <template>
   <div class="card" style="max-width: 520px; margin: 2rem auto;">
     <div class="card-header">
-      {{ isEdit ? 'ویرایش مشتری' : 'مشتری جدید' }}
+      {{ isRegister ? 'ثبت‌نام مشتری' : (isEdit ? 'ویرایش مشتری' : 'مشتری جدید') }}
     </div>
     <div class="card-body">
       <div v-if="error" class="error-msg">
@@ -29,6 +29,28 @@
           <textarea v-model="form.notes" rows="3" placeholder="توضیحات اضافی..."></textarea>
         </div>
 
+        <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e5e7eb;" />
+        <p style="color:#6b7280; font-size:0.9rem; margin-bottom:0.75rem;">
+          <i class="fas fa-user-lock"></i> اطلاعات حساب کاربری {{ isRegister ? '' : '(اختیاری)' }}
+          <span v-if="hasAccount" style="color:#059669;"> — این مشتری حساب کاربری دارد</span>
+        </p>
+
+        <div class="form-group">
+          <label>نام کاربری <span v-if="isRegister" class="text-danger">*</span></label>
+          <input v-model="form.username" type="text" autocomplete="off" :required="isRegister" placeholder="برای ورود کاربر" />
+        </div>
+
+        <div class="form-group">
+          <label>رمز عبور <span v-if="isRegister" class="text-danger">*</span></label>
+          <input
+            v-model="form.password"
+            type="password"
+            autocomplete="new-password"
+            :required="isRegister"
+            :placeholder="hasAccount ? 'برای حفظ رمز فعلی خالی بگذارید' : 'رمز عبور کاربر'"
+          />
+        </div>
+
         <div class="d-flex gap-2 mt-4">
           <button 
             type="submit" 
@@ -37,9 +59,9 @@
             style="flex: 1;"
           >
             <i class="fas fa-save"></i>
-            {{ saving ? 'در حال ذخیره...' : (isEdit ? 'به‌روزرسانی' : 'ثبت مشتری') }}
+            {{ saving ? 'در حال ذخیره...' : (isRegister ? 'ثبت‌نام' : (isEdit ? 'به‌روزرسانی' : 'ثبت مشتری')) }}
           </button>
-          <router-link to="/customers" class="btn btn-secondary"  style="flex: 1;">
+          <router-link :to="isRegister ? '/login' : '/customers'" class="btn btn-secondary"  style="flex: 1;">
             انصراف
           </router-link>
         </div>
@@ -56,28 +78,38 @@ export default {
   data() {
     return {
       isEdit: false,
+      isRegister: false,
       saving: false,
       error: null,
+      hasAccount: false,
       form: {
         name: '',
         phone_number: '',
         address: '',
-        notes: ''
+        notes: '',
+        username: '',
+        password: ''
       }
     }
   },
   async created() {
+    // حالت ثبت‌نام عمومی مشتری (مسیر /register بدون نیاز به لاگین)
+    this.isRegister = this.$route.path === '/register'
+
     const id = this.$route.params.id
     this.isEdit = !!id
 
     if (id) {
       try {
         const customer = await api.customer(id)
+        this.hasAccount = !!customer.has_account
         this.form = {
           name: customer.name || '',
           phone_number: customer.phone_number || '',
           address: customer.address || '',
-          notes: customer.notes || ''
+          notes: customer.notes || '',
+          username: customer.username || '',
+          password: ''
         }
       } catch (e) {
         this.error = 'خطا در دریافت اطلاعات مشتری'
@@ -91,6 +123,13 @@ export default {
       this.error = null
 
       try {
+        if (this.isRegister) {
+          await api.register(this.form)
+          alert('ثبت‌نام با موفقیت انجام شد. اکنون می‌توانید وارد شوید.')
+          this.$router.push('/login')
+          return
+        }
+
         if (this.isEdit) {
           await api.updateCustomer(this.$route.params.id, this.form)
           alert('اطلاعات مشتری با موفقیت بروزرسانی شد')
@@ -101,7 +140,7 @@ export default {
 
         this.$router.push('/customers')
       } catch (e) {
-        this.error = 'خطا در ذخیره اطلاعات'
+        this.error = e.message || 'خطا در ذخیره اطلاعات'
       } finally {
         this.saving = false
       }

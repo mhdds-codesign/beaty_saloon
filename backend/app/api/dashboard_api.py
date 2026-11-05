@@ -3,32 +3,23 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from app.database import get_db
-from app.models import Customer, Line, Reservation, WorkSchedule
+from app.models import Customer, Line, Reservation, WorkSchedule, Admin
+from app.api.deps import get_current_account, is_admin
 
 router = APIRouter(prefix="/api", tags=["Dashboard"])
 
 
-def require_auth(request: Request):
-    if not request.session.get("admin_id"):
-        return False
-    return True
-
-
 @router.get("/dashboard")
-async def dashboard(request: Request, db: Session = Depends(get_db)):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
+async def dashboard(
+    request: Request,
+    db: Session = Depends(get_db),
+    account: Admin = Depends(get_current_account),
+):
+    admin_view = is_admin(account)
 
-    # تعدادهای کلی
-    total_services = db.query(Line).count() 
-    total_line_types = db.query(func.count(func.distinct(Line.name_line))).scalar() or 0  # تعداد اسم‌های لاین منحصر به فرد        
-    total_customers = db.query(Customer).count()
-    total_reservations = db.query(Reservation).count()
-
-    # درآمد کل (از رزروهای موفق)
-    total_revenue = db.query(func.sum(Reservation.total_price)).filter(
-        Reservation.status.in_(["confirmed", "completed"])
-    ).scalar() or 0
+    # تعدادهای غیرحساس (برای همه نمایش داده می‌شوند)
+    total_services = db.query(Line).count()
+    total_line_types = db.query(func.count(func.distinct(Line.name_line))).scalar() or 0  # تعداد اسم‌های لاین منحصر به فرد
 
     # محبوب‌ترین سرویس بر اساس تعداد scheduleهای busy
     most_popular_service = (
@@ -45,29 +36,28 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         .first()
     )
 
-    # آخرین رزروها
-    recent_reservations = (
+    # آخرین رزروها — برای کاربر عادی فقط رزروهای خودش
+    recent_query = (
         db.query(Reservation)
         .options(joinedload(Reservation.customer), joinedload(Reservation.line))
-        .order_by(Reservation.id.desc())
-        .limit(5)
-        .all()
     )
+    if not admin_view:
+        recent_query = recent_query.filter(Reservation.customer_id == account.customer_id)
 
-    return {
-        "total_services": total_services,  
-        "total_line_types": total_line_types,         
-        "total_customers": total_customers,
-        "total_reservations": total_reservations,
-        "total_revenue": round(float(total_revenue), 2),
-        
-        "most_popular_service": {                 
+    recent_reservations = recent_query.order_by(Reservation.id.desc()).limit(5).all()
+
+    result = {
+        "role": account.role,
+        "total_services": total_services,
+        "total_line_types": total_line_types,
+
+        "most_popular_service": {
             "id": most_popular_service.id if most_popular_service else None,
             "name_line": most_popular_service.name_line if most_popular_service else None,
             "name_service": most_popular_service.name_service if most_popular_service else None,
             "busy_slots": most_popular_service.busy_slots if most_popular_service else 0,
         } if most_popular_service else None,
-        
+
         "recent_reservations": [
             {
                 "id": r.id,
@@ -80,3 +70,17 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             for r in recent_reservations
         ],
     }
+
+    # آمار حساس فقط برای admin: درآمد، تعداد کل مشتریان و نوبت‌ها
+    if admin_view:
+        total_customers = db.query(Customer).count()
+        total_reservations = db.query(Reservation).count()
+        total_revenue = db.query(func.sum(Reservation.total_price)).filter(
+            Reservation.status.in_(["confirmed", "completed"])
+        ).scalar() or 0
+
+        result["total_customers"] = total_customers
+        result["total_reservations"] = total_reservations
+        result["total_revenue"] = round(float(total_revenue), 2)
+
+    return result

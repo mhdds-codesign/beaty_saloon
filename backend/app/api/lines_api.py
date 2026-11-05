@@ -2,7 +2,8 @@ from fastapi import APIRouter, Request, Depends, Query, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import Line
+from app.models import Line, Admin
+from app.api.deps import require_admin
 from app.schemas.line import LineCreate, LineUpdate, LineResponse
 
 router = APIRouter(prefix="/api/lines", tags=["Lines"])
@@ -109,11 +110,9 @@ async def get_line(
 
 @router.post("", status_code=201)
 async def create_line(
-    request: Request, body: LineCreate, db: Session = Depends(get_db)
+    request: Request, body: LineCreate, db: Session = Depends(get_db),
+    account: Admin = Depends(require_admin),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-    
     line = Line(**body.model_dump())
     db.add(line)
     db.commit()
@@ -124,11 +123,9 @@ async def create_line(
 
 @router.put("/{line_id}")
 async def update_line(
-    request: Request, line_id: int, body: LineCreate, db: Session = Depends(get_db)
+    request: Request, line_id: int, body: LineCreate, db: Session = Depends(get_db),
+    account: Admin = Depends(require_admin),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-    
     line = db.query(Line).filter(Line.id == line_id).first()
     if not line:
         raise HTTPException(status_code=404, detail="Line not found")
@@ -143,11 +140,9 @@ async def update_line(
 
 @router.patch("/{line_id}")
 async def patch_line(
-    request: Request, line_id: int, body: LineUpdate, db: Session = Depends(get_db)
+    request: Request, line_id: int, body: LineUpdate, db: Session = Depends(get_db),
+    account: Admin = Depends(require_admin),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-    
     line = db.query(Line).filter(Line.id == line_id).first()
     if not line:
         raise HTTPException(status_code=404, detail="Line not found")
@@ -162,11 +157,9 @@ async def patch_line(
 
 @router.delete("/{line_id}")
 async def delete_line(
-    request: Request, line_id: int, db: Session = Depends(get_db)
+    request: Request, line_id: int, db: Session = Depends(get_db),
+    account: Admin = Depends(require_admin),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-    
     line = db.query(Line).filter(Line.id == line_id).first()
     if not line:
         raise HTTPException(status_code=404, detail="Line not found")

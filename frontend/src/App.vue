@@ -3,7 +3,7 @@
     <nav class="navbar" v-if="loggedIn">
       <div class="container">
         <router-link to="/" class="navbar-brand">
-         <i class="fas fa-spa" style="margin-left: 6px;"></i>پنل مدیریت رز بیوتی (rose beauty)
+         <i class="fas fa-spa" style="margin-left: 9px; color: #f0dce8;"></i>پنل مدیریت رز بیوتی (rose beauty)
         </router-link>
         
         <ul class="navbar-nav">
@@ -50,16 +50,18 @@
 
 <script>
 import api from './api.js'
+import { auth, loadAuth, clearAuth } from './auth.js'
 
 export default {
   data() {
     return {
-      loggedIn: false
+      loggedIn: false,
+      auth,
     }
   },
   async created() {
     try {
-      await api.me()
+      await loadAuth()
       this.loggedIn = true
     } catch {
       this.loggedIn = false
@@ -68,6 +70,7 @@ export default {
   methods: {
     async doLogout() {
       await api.logout()
+      clearAuth()
       this.loggedIn = false
       this.$router.push('/login')
     },

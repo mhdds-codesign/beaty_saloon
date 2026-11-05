@@ -22,24 +22,24 @@
           </div>
         </div>
 
-        <div class="card text-center">
+        <div class="card text-center" v-if="isAdmin">
           <div class="card-header">تعداد مشتریان</div>
           <div class="card-body">
             <span style="font-size:2.5rem;font-weight:700;color:#ff6b9d;">{{ data.total_customers }}</span>
           </div>
         </div>
 
-        <div class="card text-center">
+        <div class="card text-center" v-if="isAdmin">
           <div class="card-header">تعداد نوبت‌ها</div>
           <div class="card-body">
             <span style="font-size:2.5rem;font-weight:700;color:#ff6b9d;">{{ data.total_reservations }}</span>
           </div>
         </div>
 
-        <div class="card text-center">
+        <div class="card text-center" v-if="isAdmin">
           <div class="card-header">درآمد کل</div>
           <div class="card-body">
-            <span style="font-size:1.75rem;font-weight:700;color:#ff6b9d;">{{ data.total_revenue.toLocaleString() }} تومان</span>
+            <span style="font-size:1.75rem;font-weight:700;color:#ff6b9d;">{{ (data.total_revenue || 0).toLocaleString() }} تومان</span>
           </div>
         </div>
 
@@ -105,16 +105,16 @@
 
       <!-- دکمه‌های سریع -->
       <div class="actions">
-        <router-link to="/customers/new" class="btn btn-primary">
+        <router-link v-if="isAdmin" to="/customers/new" class="btn btn-primary">
           <i class="fas fa-plus"></i> مشتری جدید
         </router-link>
-        <router-link to="/lines/new" class="btn btn-primary">
+        <router-link v-if="isAdmin" to="/lines/new" class="btn btn-primary">
           <i class="fas fa-plus"></i>لاین / سرویس جدید
         </router-link>
         <router-link to="/reservations/new" class="btn btn-primary">
           <i class="fas fa-plus"></i> نوبت جدید
         </router-link>
-        <router-link to="/schedules/new" class="btn btn-primary">
+        <router-link v-if="isAdmin" to="/schedules/new" class="btn btn-primary">
           <i class="fas fa-plus"></i> برنامه کاری جدید
         </router-link>
       </div>
@@ -124,9 +124,15 @@
 
 <script>
 import api from '../api.js'
+import { auth } from '../auth.js'
 
 export default {
   name: 'Dashboard',
+  computed: {
+    isAdmin() {
+      return auth.role === 'admin'
+    }
+  },
   data() {
     return {
       data: null,

@@ -41,8 +41,13 @@ async def me(request: Request, db: Session = Depends(get_db)):
     admin = db.query(Admin).filter(Admin.id == admin_id).first()
     if not admin:
         return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-    
-    return {"id": admin.id, "username": admin.username}
+
+    return {
+        "id": admin.id,
+        "username": admin.username,
+        "role": admin.role,
+        "customer_id": admin.customer_id,
+    }
 
 
 @router.post("/logout")

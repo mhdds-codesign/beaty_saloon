@@ -39,6 +39,13 @@
           <i class="fas fa-sign-in-alt"></i>
           {{ loading ? 'در حال ورود...' : 'ورود' }}
         </button>
+
+        <div class="text-center mt-3">
+          <router-link to="/register" class="register-link">
+            حساب کاربری ندارید؟ اینجا کلیک کنید
+          </router-link>
+        </div>
+
       </form>
 
       <div class="text-center mt-3">
@@ -82,3 +89,16 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.register-link {
+  color: #ec4899;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.register-link:hover {
+  color: #db2777;
+  text-decoration: underline;
+}
+</style>

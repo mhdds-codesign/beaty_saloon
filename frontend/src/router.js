@@ -21,9 +21,15 @@ import Schedules from './views/Schedules.vue'
 import ScheduleForm from './views/ScheduleForm.vue'
 
 const routes = [
-  { 
-    path: '/login', 
+  {
+    path: '/login',
     component: Login,
+    meta: { requiresAuth: false }
+  },
+  {
+    // ثبت‌نام عمومی مشتری از طریق فرم مشتری
+    path: '/register',
+    component: CustomerForm,
     meta: { requiresAuth: false }
   },
   { 
@@ -38,10 +44,10 @@ const routes = [
     component: Customers, 
     meta: { requiresAuth: true } 
   },
-  { 
-    path: '/customers/new', 
-    component: CustomerForm, 
-    meta: { requiresAuth: true } 
+  {
+    path: '/customers/new',
+    component: CustomerForm,
+    meta: { requiresAuth: true, requiresAdmin: true }
   },
   { 
     path: '/customers/:id/edit', 
@@ -55,15 +61,15 @@ const routes = [
     component: Lines, 
     meta: { requiresAuth: true } 
   },
-  { 
-    path: '/lines/new', 
-    component: LineForm, 
-    meta: { requiresAuth: true } 
+  {
+    path: '/lines/new',
+    component: LineForm,
+    meta: { requiresAuth: true, requiresAdmin: true }
   },
-  { 
-    path: '/lines/:id/edit', 
-    component: LineForm, 
-    meta: { requiresAuth: true } 
+  {
+    path: '/lines/:id/edit',
+    component: LineForm,
+    meta: { requiresAuth: true, requiresAdmin: true }
   },
 
   // ==================== Reservations ====================
@@ -94,15 +100,15 @@ const routes = [
     component: Schedules, 
     meta: { requiresAuth: true } 
   },
-  { 
-    path: '/schedules/new', 
-    component: ScheduleForm, 
-    meta: { requiresAuth: true } 
+  {
+    path: '/schedules/new',
+    component: ScheduleForm,
+    meta: { requiresAuth: true, requiresAdmin: true }
   },
-  { 
-    path: '/schedules/:id/edit', 
-    component: ScheduleForm, 
-    meta: { requiresAuth: true } 
+  {
+    path: '/schedules/:id/edit',
+    component: ScheduleForm,
+    meta: { requiresAuth: true, requiresAdmin: true }
   },
 ]
 
@@ -114,12 +120,20 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth) {
     try {
-      const res = await fetch('/api/auth/me', { 
-        credentials: 'include' 
+      const res = await fetch('/api/auth/me', {
+        credentials: 'include'
       })
-      
+
       if (!res.ok) {
         return next('/login')
+      }
+
+      // مسیرهای مخصوص admin برای کاربران عادی مسدود می‌شوند
+      if (to.meta.requiresAdmin) {
+        const me = await res.json()
+        if (me.role !== 'admin') {
+          return next('/')
+        }
       }
     } catch (err) {
       console.error('Auth check failed:', err)

@@ -3,16 +3,11 @@ from fastapi import APIRouter, Request, Depends, Query, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
-from app.models import Reservation, Customer, Line, WorkSchedule
+from app.models import Reservation, Customer, Line, WorkSchedule, Admin
+from app.api.deps import get_current_account, is_admin
 from app.schemas.reservation import ReservationCreate, ReservationUpdate, ReservationStatusUpdate, ReservationResponse
 
 router = APIRouter(prefix="/api/reservations", tags=["Reservations"])
-
-
-def require_auth(request: Request):
-    if not request.session.get("admin_id"):
-        return False
-    return True
 
 
 def reservation_to_response(r: Reservation) -> ReservationResponse:
@@ -41,11 +36,9 @@ async def get_available_slots(
     request: Request,
     line_id: int = Query(None),
     db: Session = Depends(get_db),
+    account: Admin = Depends(get_current_account),
 ):
     """فقط اسلات‌هایی که free هستند — برای نمایش در dropdown"""
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-
     query = db.query(WorkSchedule).filter(WorkSchedule.status == "free")
 
     if line_id is not None:
@@ -81,13 +74,15 @@ async def list_reservations(
     status: str = Query(None, description="فیلتر بر اساس وضعیت"),
     search: str = Query(None, description="جستجو بر اساس نام لاین یا نام خدمت"),
     db: Session = Depends(get_db),
+    account: Admin = Depends(get_current_account),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-
     # شروع کوئری با join به Line
     query = db.query(Reservation).join(Line, Reservation.line_id == Line.id)
-    
+
+    # کاربر عادی فقط رزروهای خودش را می‌بیند
+    if not is_admin(account):
+        query = query.filter(Reservation.customer_id == account.customer_id)
+
     # فیلتر بر اساس وضعیت
     if status:
         query = query.filter(Reservation.status == status)
@@ -123,11 +118,9 @@ async def list_reservations(
 
 @router.get("/{reservation_id}")
 async def get_reservation(
-    request: Request, reservation_id: int, db: Session = Depends(get_db)
+    request: Request, reservation_id: int, db: Session = Depends(get_db),
+    account: Admin = Depends(get_current_account),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-
     reservation = (
         db.query(Reservation)
         .options(joinedload(Reservation.customer), joinedload(Reservation.line), joinedload(Reservation.work_schedule))
@@ -136,18 +129,25 @@ async def get_reservation(
     )
     if not reservation:
         raise HTTPException(status_code=404, detail="Reservation not found")
-    
+
+    # کاربر عادی فقط رزرو خودش را می‌بیند
+    if not is_admin(account) and reservation.customer_id != account.customer_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
     return reservation_to_response(reservation)
 
 
 @router.post("", status_code=201)
 async def create_reservation(
-    request: Request, body: ReservationCreate, db: Session = Depends(get_db)
+    request: Request, body: ReservationCreate, db: Session = Depends(get_db),
+    account: Admin = Depends(get_current_account),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
+    # کاربر عادی فقط برای خودش می‌تواند رزرو کند
+    target_customer_id = body.customer_id
+    if not is_admin(account):
+        target_customer_id = account.customer_id
 
-    customer = db.query(Customer).filter(Customer.id == body.customer_id).first()
+    customer = db.query(Customer).filter(Customer.id == target_customer_id).first()
     if not customer: raise HTTPException(404, "Customer not found")
 
     line = db.query(Line).filter(Line.id == body.line_id).first()
@@ -159,7 +159,7 @@ async def create_reservation(
         raise HTTPException(400, "This time slot is not available")
 
     reservation = Reservation(
-        customer_id=body.customer_id,
+        customer_id=target_customer_id,
         line_id=body.line_id,
         schedule_id=body.schedule_id,
         total_price=line.price,
@@ -182,17 +182,24 @@ async def create_reservation(
 
 @router.put("/{reservation_id}")
 async def update_reservation(
-    request: Request, reservation_id: int, body: ReservationUpdate, db: Session = Depends(get_db)
+    request: Request, reservation_id: int, body: ReservationUpdate, db: Session = Depends(get_db),
+    account: Admin = Depends(get_current_account),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-
     reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
     if not reservation:
         raise HTTPException(status_code=404, detail="Reservation not found")
 
+    # کاربر عادی فقط رزرو خودش را ویرایش می‌کند و نمی‌تواند مالک آن را عوض کند
+    if not is_admin(account):
+        if reservation.customer_id != account.customer_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+
     old_schedule_id = reservation.schedule_id
     update_data = body.model_dump(exclude_unset=True)
+
+    # کاربر عادی نمی‌تواند رزرو را به مشتری دیگری منتقل کند
+    if not is_admin(account):
+        update_data.pop("customer_id", None)
 
     # اگر schedule_id عوض شده باشد
     new_schedule_id = update_data.get("schedule_id")
@@ -229,11 +236,9 @@ async def update_reservation(
 @router.patch("/{reservation_id}/status")
 async def update_reservation_status(
     request: Request, reservation_id: int, body: ReservationStatusUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    account: Admin = Depends(get_current_account),
 ):
-    if not require_auth(request):
-        return JSONResponse(status_code=401, content={"message": "Not authenticated"})
-
     valid_statuses = {"confirmed", "completed", "cancelled"}
     if body.status not in valid_statuses:
         raise HTTPException(400, f"Invalid status. Must be one of: {', '.join(valid_statuses)}")
@@ -241,6 +246,10 @@ async def update_reservation_status(
     reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
     if not reservation:
         raise HTTPException(404, "Reservation not found")
+
+    # کاربر عادی فقط وضعیت رزرو خودش را تغییر می‌دهد
+    if not is_admin(account) and reservation.customer_id != account.customer_id:
+        raise HTTPException(status_code=403, detail="Access denied")
 
     old_status = reservation.status
     

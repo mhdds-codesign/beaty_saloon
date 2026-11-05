@@ -2,7 +2,7 @@
   <div>
     <h2><i class="fas fa-users"></i> مشتریان</h2>
 
-    <div style="margin:1rem 0;">
+    <div style="margin:1rem 0;" v-if="isAdmin">
       <router-link to="/customers/new" class="btn btn-primary">
         <i class="fas fa-plus"></i> مشتری جدید
       </router-link>
@@ -56,8 +56,9 @@
                 >
                   <i class="fas fa-edit"></i>
                 </router-link>
-                <button 
-                  class="btn btn-danger btn-sm" 
+                <button
+                  v-if="isAdmin"
+                  class="btn btn-danger btn-sm"
                   @click="doDelete(c)"
                 >
                   <i class="fas fa-trash-alt"></i>
@@ -107,9 +108,15 @@
 
 <script>
 import api from '../api.js'
+import { auth } from '../auth.js'
 
 export default {
   name: 'Customers',
+  computed: {
+    isAdmin() {
+      return auth.role === 'admin'
+    }
+  },
   data() {
     return {
       customers: [],

@@ -53,6 +53,14 @@ export default {
     })
   },
 
+  // ثبت‌نام عمومی مشتری (بدون نیاز به لاگین ادمین)
+  register(data) {
+    return request('/api/customers/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
   updateCustomer(id, data) {
     return request(`/api/customers/${id}`, {
       method: 'PUT',

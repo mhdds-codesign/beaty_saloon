@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <div style="margin:1rem 0;">
+    <div style="margin:1rem 0;" v-if="isAdmin">
       <router-link to="/lines/new" class="btn btn-primary">
         <i class="fas fa-plus"></i> سرویس / لاین جدید
       </router-link>
@@ -59,7 +59,7 @@
                 <th>نام سرویس</th>
                 <th>قیمت</th>
                 <th>مدت زمان (دقیقه)</th>
-                <th>عملیات</th>
+                <th v-if="isAdmin">عملیات</th>
               </tr>
             </thead>
             <tbody>
@@ -69,16 +69,16 @@
                 <td>{{ line.name_service }}</td>
                 <td>{{ line.price ? line.price.toLocaleString() + ' تومان' : '—' }}</td>
                 <td>{{ line.duration_minutes || '—' }}</td>
-                <td>
+                <td v-if="isAdmin">
                   <!-- <div style="display: inline-flex;"> -->
-                  <router-link 
-                    :to="`/lines/${line.id}/edit`" 
+                  <router-link
+                    :to="`/lines/${line.id}/edit`"
                     class="btn btn-warning btn-sm"
                   >
                     <i class="fas fa-edit"></i>
                   </router-link>
-                  <button 
-                    class="btn btn-danger btn-sm" 
+                  <button
+                    class="btn btn-danger btn-sm"
                     @click="doDelete(line)"
                   >
                     <i class="fas fa-trash-alt"></i>
@@ -129,9 +129,15 @@
 
 <script>
 import api from '../api.js'
+import { auth } from '../auth.js'
 
 export default {
   name: 'Lines',
+  computed: {
+    isAdmin() {
+      return auth.role === 'admin'
+    }
+  },
   data() {
     return {
       lines: [],
