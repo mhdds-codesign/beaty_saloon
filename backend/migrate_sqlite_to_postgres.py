@@ -16,6 +16,8 @@ from sqlalchemy import MetaData, create_engine, delete, func, insert, select, te
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.database import Base, engine as target_engine
+# Register all ORM models on Base.metadata before creating or inspecting tables.
+from app.models import Admin, Customer, Line, Reservation, WorkSchedule  # noqa: F401
 
 TABLE_ORDER = [
     "customers",
@@ -57,89 +59,99 @@ def main():
 
     required_missing = [name for name in TABLE_ORDER if name not in source_metadata.tables]
     if required_missing:
+        source_engine.dispose()
         raise SystemExit(
             "The SQLite file is missing expected application tables: "
             + ", ".join(required_missing)
         )
 
-    # Create the destination tables from the current SQLAlchemy models.
+    # Create destination tables from the current SQLAlchemy models.
     Base.metadata.create_all(bind=target_engine)
     target_metadata = Base.metadata
 
-    source_counts = {}
-    with source_engine.connect() as source_conn:
-        for name in TABLE_ORDER:
-            source_counts[name] = source_conn.scalar(
-                select(func.count()).select_from(source_metadata.tables[name])
-            )
-
-    print("Source SQLite rows:")
-    for name in TABLE_ORDER:
-        print(f"  {name}: {source_counts[name]}")
-
     try:
-        with target_engine.begin() as target_conn:
-            target_counts = {
-                name: target_conn.scalar(
-                    select(func.count()).select_from(target_metadata.tables[name])
+        # Keep the SQLite connection open during the whole copy operation.
+        with source_engine.connect() as source_conn:
+            source_counts = {
+                name: source_conn.scalar(
+                    select(func.count()).select_from(source_metadata.tables[name])
                 )
                 for name in TABLE_ORDER
             }
 
-            if any(target_counts.values()) and not args.replace:
-                details = ", ".join(f"{name}={count}" for name, count in target_counts.items())
-                raise SystemExit(
-                    "Destination is not empty (" + details + "). "
-                    "Nothing was imported. Use --replace only if clearing it is intended."
-                )
-
-            if args.replace:
-                for name in TABLE_DELETE_ORDER:
-                    target_conn.execute(delete(target_metadata.tables[name]))
-
+            print("Source SQLite rows:")
             for name in TABLE_ORDER:
-                source_table = source_metadata.tables[name]
-                target_table = target_metadata.tables[name]
-                target_columns = {column.name for column in target_table.columns}
-                source_columns = {column.name for column in source_table.columns}
-                common_columns = target_columns & source_columns
+                print(f"  {name}: {source_counts[name]}")
 
-                rows = source_conn.execute(select(source_table)).mappings()
-                batch = []
-                imported = 0
-                for source_row in rows:
-                    row = {column: source_row[column] for column in common_columns}
-                    # Very old SQLite databases may predate role/customer_id.
-                    if name == "admins":
-                        if "role" in target_columns and "role" not in source_columns:
-                            row["role"] = "admin"
-                        if "customer_id" in target_columns and "customer_id" not in source_columns:
-                            row["customer_id"] = None
-                    batch.append(row)
+            with target_engine.begin() as target_conn:
+                target_counts = {
+                    name: target_conn.scalar(
+                        select(func.count()).select_from(target_metadata.tables[name])
+                    )
+                    for name in TABLE_ORDER
+                }
 
-                    if len(batch) >= 500:
-                        target_conn.execute(insert(target_table), batch)
-                        imported += len(batch)
-                        batch.clear()
-
-                if batch:
-                    target_conn.execute(insert(target_table), batch)
-                    imported += len(batch)
-
-                print(f"Imported {name}: {imported} rows")
-
-            # Explicitly advance PostgreSQL sequences after preserving SQLite IDs.
-            for name in TABLE_ORDER:
-                if "id" in target_metadata.tables[name].columns:
-                    target_conn.execute(
-                        text(
-                            f"SELECT setval(pg_get_serial_sequence('{name}', 'id'), "
-                            f"COALESCE((SELECT MAX(id) FROM {name}), 1), "
-                            f"(SELECT COUNT(*) FROM {name}) > 0)"
-                        )
+                if any(target_counts.values()) and not args.replace:
+                    details = ", ".join(
+                        f"{name}={count}" for name, count in target_counts.items()
+                    )
+                    raise SystemExit(
+                        "Destination is not empty (" + details + "). "
+                        "Nothing was imported. Use --replace only if clearing it is intended."
                     )
 
+                if args.replace:
+                    for name in TABLE_DELETE_ORDER:
+                        target_conn.execute(delete(target_metadata.tables[name]))
+
+                for name in TABLE_ORDER:
+                    source_table = source_metadata.tables[name]
+                    target_table = target_metadata.tables[name]
+                    target_columns = {column.name for column in target_table.columns}
+                    source_columns = {column.name for column in source_table.columns}
+                    common_columns = [
+                        column.name for column in target_table.columns
+                        if column.name in source_columns
+                    ]
+
+                    rows = source_conn.execute(select(source_table)).mappings()
+                    batch = []
+                    imported = 0
+                    for source_row in rows:
+                        row = {column: source_row[column] for column in common_columns}
+                        # Very old SQLite databases may predate role/customer_id.
+                        if name == "admins":
+                            if "role" in target_columns and "role" not in source_columns:
+                                row["role"] = "admin"
+                            if "customer_id" in target_columns and "customer_id" not in source_columns:
+                                row["customer_id"] = None
+                        batch.append(row)
+
+                        if len(batch) >= 500:
+                            target_conn.execute(insert(target_table), batch)
+                            imported += len(batch)
+                            batch.clear()
+
+                    if batch:
+                        target_conn.execute(insert(target_table), batch)
+                        imported += len(batch)
+
+                    print(f"Imported {name}: {imported} rows")
+
+                # Advance PostgreSQL sequences after preserving SQLite IDs.
+                for name in TABLE_ORDER:
+                    if "id" in target_metadata.tables[name].columns:
+                        target_conn.execute(
+                            text(
+                                f"SELECT setval(pg_get_serial_sequence('{name}', 'id'), "
+                                f"COALESCE((SELECT MAX(id) FROM {name}), 1), "
+                                f"(SELECT COUNT(*) FROM {name}) > 0)"
+                            )
+                        )
+
         print("Migration completed successfully.")
+    except SystemExit:
+        raise
     except SQLAlchemyError as exc:
         raise SystemExit(f"Migration failed and was rolled back: {exc}") from exc
     finally:
