@@ -110,24 +110,3 @@ Add the initial license.
 
 📄 License
 This project was developed for educational and personal use.
-
----
-
-## Vercel preview deployment (multi-service)
-
-The repository includes a Vercel multi-service configuration:
-
-- `frontend`: Vue 3 + Vite, publicly served at `/`.
-- `backend`: FastAPI, publicly reached through `/api` and `/api/*`.
-- The frontend sends same-origin requests to `/api`; no backend URL or service binding is required.
-- Vue Router history routes fall back to `frontend/index.html`.
-
-Set these Project Environment Variables in Vercel for the backend service (and the relevant deployment environments):
-
-- `SESSION_SECRET`: a long, random secret used to sign session cookies.
-- `INITIAL_ADMIN_USERNAME`: the demo administrator's username.
-- `INITIAL_ADMIN_PASSWORD`: a strong, private demo password.
-
-The backend creates this initial administrator in the current SQLite database when that username does not exist. Do not use a real password or real customer information in a public demo.
-
-**SQLite limitation on Vercel:** this configuration puts the SQLite file in `/tmp/saloon.db` when running on Vercel so the function can write to its temporary filesystem. This is only a disposable preview/testing workaround, not durable database hosting. Vercel function instances have separate ephemeral filesystems; data may disappear after an instance is recycled and may not be shared across instances. Therefore logins and records are not guaranteed to remain available or consistent. Do not use this setup for production or real salon/customer data. For a reliable live demo with working CRUD, migrate the database to a managed database such as PostgreSQL.
