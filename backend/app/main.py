@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -49,9 +50,17 @@ app = FastAPI(
     redoc_url=None,
 )
 
+SESSION_SECRET = os.getenv("SESSION_SECRET")
+if not SESSION_SECRET:
+    if os.getenv("VERCEL") == "1":
+        raise RuntimeError("SESSION_SECRET must be set in Vercel Environment Variables.")
+    SESSION_SECRET = "local-development-only-change-this-secret"
+
 app.add_middleware(
     SessionMiddleware,
-    secret_key="this-is-secret-key-for-saloon",
+    secret_key=SESSION_SECRET,
+    https_only=os.getenv("VERCEL") == "1",
+    same_site="lax",
 )
 
 app.add_middleware(
