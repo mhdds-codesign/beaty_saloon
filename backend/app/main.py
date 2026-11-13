@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import hashlib
+from datetime import datetime
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -13,7 +14,7 @@ from starlette import status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from app.database import engine, Base, get_db
+from app.database import engine, Base, get_db, SessionLocal
 from app.models import Admin
 
 # Import routers
@@ -42,6 +43,33 @@ def _ensure_admin_role_columns():
 
 
 _ensure_admin_role_columns()
+
+
+def _ensure_initial_admin():
+    """Create the demo admin from environment variables if the current DB is empty."""
+    username = os.getenv("INITIAL_ADMIN_USERNAME")
+    password = os.getenv("INITIAL_ADMIN_PASSWORD")
+    if not username or not password:
+        return
+
+    db = SessionLocal()
+    try:
+        existing = db.query(Admin).filter(Admin.username == username).first()
+        if existing:
+            return
+        admin = Admin(
+            username=username,
+            password_hash=hashlib.sha256(password.encode()).hexdigest(),
+            created_at=datetime.utcnow().isoformat(),
+            role="admin",
+        )
+        db.add(admin)
+        db.commit()
+    finally:
+        db.close()
+
+
+_ensure_initial_admin()
 
 IS_VERCEL = os.getenv("VERCEL") == "1"
 SESSION_SECRET = os.getenv("SESSION_SECRET")
