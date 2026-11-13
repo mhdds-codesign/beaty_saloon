@@ -20,6 +20,7 @@ pnpm-debug.log*
 *.db-wal
 *.sqlite3
 *.db-journal
+!backend/saloon.db
 
 # ===== Personal / Not for repo =====
 d.py
