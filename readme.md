@@ -128,3 +128,14 @@ python migrate_sqlite_to_postgres.py --sqlite ./saloon.db
 The migration preserves record IDs and existing password hashes and refuses to overwrite a non-empty destination by default. Review the row counts printed by the script. Only use `--replace` when you deliberately want to clear the five application tables on the destination first.
 
 The schema migration uses SQLAlchemy inspection rather than SQLite-only PRAGMA. The `work_schedules.line_name` column is a category label shared by multiple service rows, so it is not a valid foreign-key target; the PostgreSQL model does not create that invalid foreign key.
+
+
+### Vercel deployment with Supabase
+
+After merging this change, import or reconnect the repository in Vercel and set the project's Framework Preset to **Services**. The root `vercel.json` defines the Vue/Vite frontend and FastAPI backend and routes `/api/*` to FastAPI.
+
+Add these project environment variables for **Production** and **Preview**:
+- `DATABASE_URL`: Supabase **Transaction pooler** connection string (port `6543`) for the Vercel serverless backend.
+- `SESSION_SECRET`: a long random secret used to sign secure session cookies.
+
+The existing imported `admin` and `user` accounts are preserved by the SQLite migration. No initial-admin seeding variable is needed. Redeploy after saving environment variables. The Vue app already calls same-origin `/api/... ` routes, so no frontend API URL variable is needed.
