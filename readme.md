@@ -110,3 +110,21 @@ Add the initial license.
 
 📄 License
 This project was developed for educational and personal use.
+
+---
+
+## Supabase PostgreSQL
+
+The backend uses local SQLite by default. For Supabase, set the backend environment variable `DATABASE_URL` to the PostgreSQL connection string copied from **Supabase → Connect**. Use the transaction pooler (port `6543`) for serverless deployments. Keep the URL private and do not commit it.
+
+Install backend dependencies from `backend/requirements.txt`.
+
+To migrate a local SQLite database, run this from the `backend` directory after setting `DATABASE_URL` in the shell:
+
+```bash
+python migrate_sqlite_to_postgres.py --sqlite ./saloon.db
+```
+
+The migration preserves record IDs and existing password hashes and refuses to overwrite a non-empty destination by default. Review the row counts printed by the script. Only use `--replace` when you deliberately want to clear the five application tables on the destination first.
+
+The schema migration uses SQLAlchemy inspection rather than SQLite-only PRAGMA. The `work_schedules.line_name` column is a category label shared by multiple service rows, so it is not a valid foreign-key target; the PostgreSQL model does not create that invalid foreign key.
