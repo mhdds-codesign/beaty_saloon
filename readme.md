@@ -1,112 +1,248 @@
-# Beauty Salon Manager
+# 💇‍♀️ سیستم مدیریت سالن زیبایی (Beauty Salon Management System)
 
-A beauty salon management system with a decoupled architecture (Frontend + Backend), including appointment management, customers, services, and user roles.
-
----
-
-## 🏗️ Architecture
-
-| Layer | Technology | Default Port |
-|---|---|---|
-| Backend | FastAPI + Uvicorn | `8000` |
-| Frontend | Vue 3 + Vite | `5173` |
-| Database | SQLite (`saloon.db`) | — |
+یک سامانه جامع و مدرن تحت وب جهت مدیریت سالن‌های زیبایی، نوبت‌دهی آنلاین مشتریان، زمان‌بندی ساعات کاری پرسنل و خطوط خدماتی، با معماری مجزا (Decoupled) توسعه‌داده‌شده با **Vue 3** در فرانت‌اند، **FastAPI (Python)** در بک‌اند، پایگاه داده **SQLite** و قابلیت استقرار کانتینری با **Docker** روی پلتفرم ابری **Render**.
 
 ---
 
-## 📁 Project Structure
+> [!TIP]
+> ### 🌐 مشاهده نسخه آنلاین (Live Demo)
+> شما می‌توانید این پروژه را به صورت لایو و آنلاین در آدرس زیر مشاهده نمایید:  
+> 👉 **[https://beauty-saloon-8tep.onrender.com](https://beauty-saloon-8tep.onrender.com)**  
+> 
+> ⚠️ **نکته مهم:** به دلیل میزبانی سرور در خارج از کشور، برای مشاهده سایت حتماً **VPN / فیلترشکن** خود را فعال کنید. همچنین با توجه به استفاده از پلن ابری رایگان، در صورتی که سرور در حالت خواب (Sleep) باشد، بارگذاری اولیه ممکن است حدود **۳۰ الی ۴۰ ثانیه** زمان ببرد.
+
+---
+
+## 📸 تصاویر محیط نرم‌افزار
+
+<div align="center">
+
+| صفحه ورود (Login) | صفحه ثبت‌نام کاربر / مشتری جدید (Register) |
+|:---:|:---:|
+| ![Login](screenshots/login.png) | ![New User Form](screenshots/new_user_form.png) |
+
+| داشبورد مدیریت (Admin Dashboard) | داشبورد اختصاصی مشتری (User Dashboard) |
+|:---:|:---:|
+| ![Admin Dashboard](screenshots/admin/dashboard.png) | ![User Dashboard](screenshots/user/dashboard.png) |
+
+| رزروهای من (مشتری) | مدیریت و تغییر وضعیت سفارشات (ادمین) |
+|:---:|:---:|
+| ![User Reservations](screenshots/user/user_reservations.png) | ![Update Order Status](screenshots/admin/update_order_status.png) |
+
+| جستجوی فیلتردار و هوشمند | مرتب‌سازی الفبایی و ترتیبی داده‌ها |
+|:---:|:---:|
+| ![Option Search](screenshots/admin/option_search_sample.png) | ![Sort Sample](screenshots/admin/sort_sample.png) |
+
+| فرم ثبت و نوبت‌دهی جدید | فرم ویرایش اطلاعات و خدمات |
+|:---:|:---:|
+| ![New Record Form](screenshots/admin/new_form_sample.png) | ![Update Form](screenshots/admin/update_form_sample.png) |
+
+| مشاهده مشخصات کاربری (پروفایل) | فرم ویرایش مشخصات فردی |
+|:---:|:---:|
+| ![User Info](screenshots/user/user_info.png) | ![Edit Info](screenshots/user/edit_info.png) |
+
+</div>
+
+---
+
+## ✨ قابلیت‌های کلیدی
+
+### 🔐 ۱. سیستم احراز هویت دوسطحی و مدیریت نقش‌ها (Role-based Auth)
+- سیستم احراز هویت ایمن مبتنی بر سشن و کوکی با رمزنگاری گذرواژه‌ها (`SHA-256`)
+- تفکیک کامل دسترسی‌ها در دو سطح **مدیر سالن (Admin)** و **مشتری (Customer / User)**
+- گارد ناوبری فرانت‌اند (Vue Router Navigation Guards) جهت جلوگیری از دسترسی کاربران عادی به بخش‌های مدیریتی
+- امکان ثبت‌نام مستقیم مشتریان جدید از طریق فرم عمومی
+
+### 💇 ۲. مدیریت خدمات و لاین‌های سالن (Lines & Services)
+- دسته‌بندی لاین‌های سالن (ناخن، مو، پوست، میکاپ و ...)
+- تعریف خدمات متنوع به همراه تعیین مدت زمان دقیق به دقیقه (`duration_minutes`) و هزینه هر خدمت (`price`)
+- امکان ایجاد، ویرایش، حذف و گزارش‌گیری از لاین‌ها و خدمات فعال
+
+### 🕒 ۳. زمان‌بندی هوشمند کاری (Work Schedules)
+- تعریف شیفت‌ها و اسلات‌های زمانی منظم در طول روزهای هفته (شنبه تا چهارشنبه)
+- مدیریت وضعیت اسلات‌ها (`free` برای آزاد، `busy` برای رزروشده)
+- جلوگیری از تداخل نوبت‌ها و هم‌پوشانی ساعات کاری پرسنل
+
+### 📅 ۴. سیستم نوبت‌دهی و مدیریت رزروها (Reservations)
+- امکان انتخاب لاین، خدمات مورد نظر و اسلات زمانی آزاد توسط مشتری
+- ثبت، لغو یا تایید نوبت‌ها با محاسبه خودکار هزینه کل
+- تغییر آنی وضعیت اسلات کاری به حالت `busy` پس از تایید رزرو
+- ثبت یادداشت و ملاحظات اختصاصی مشتریان برای هر نوبت
+
+### 📊 ۵. داشبورد آماری و ابزارهای جستجو و فیلتر
+- نمایش خلاصه وضعیت، تعداد کل مشتریان، خدمات فعال و نوبت‌های ثبت‌شده
+- قابلیت جستجوی پیشرفته متنی و چندمعیاره بر اساس نام مشتری، شماره تماس یا نوع خدمت
+- مرتب‌سازی صعودی و نزولی بر اساس حروف الفبا، تاریخ و وضعیت رزروها
+
+### 🎨 ۶. رابط کاربری مدرن، تعاملی و واکنش‌گرا
+- طراحی چشم‌نواز با انیمیشن‌های ذرات ستاره‌ای نئونی در بوم پس‌زمینه (`Canvas Starfield`)
+- افکت رد نور نشانگر ماوس (`Cursor Glow`) و نورپردازی نئولا (`Nebula Glow`)
+- استفاده از تایپوگرافی استاندارد فونت فارسی **وزیرمتن (Vazirmatn)** و آیکون‌های **Font Awesome 6**
+
+---
+
+## 🛠 تکنولوژی‌های مورداستفاده
+
+### بخش بک‌اند (Backend)
+- **زبان و فریم‌ورک:** Python 3.10+ با **FastAPI**
+- **وب‌سرور ناهمگام (ASGI):** **Uvicorn**
+- **پایگاه داده و ORM:** **SQLite** به همراه **SQLAlchemy 2.0**
+- **مدیریت سشن و امنیت:** `starlette.middleware.sessions` و `itsdangerous`
+- **مستندسازی خودکار API:** OpenAPI (Swagger UI) و ReDoc
+
+### بخش فرانت‌اند (Frontend)
+- **فریم‌ورک:** **Vue 3** (با استفاده از Composition API و `<script setup>`)
+- **ابزار بیلد:** **Vite 5**
+- **مسیریابی (Routing):** **Vue Router 4** در حالت SPA (HTML5 History Mode)
+- **آیکون‌ها و فونت‌ها:** Font Awesome 6 و فونت وزیرمتن (از طریق CDN)
+
+### کانتینرسازی و استقرار (DevOps)
+- **کانتینرسازی:** Docker (معماری چندمرحله‌ای Multi-stage جهت بیلد فرانت و اجرای بهینه بک‌اند)
+- **هاستینگ ابری:** پلتفرم Render (منطقه فرانکفورت آلمان با کمترین پینگ)
+
+---
+
+## 📁 ساختار پروژه
 
 ```text
-project_v7/
-├── backend/
+beauty-saloon-manager/
+│
+├── backend/                        # کدهای سمت سرور (FastAPI)
 │   ├── app/
-│   │   ├── api/            # API routes
-│   │   ├── models/         # SQLAlchemy models
-│   │   ├── schemas/        # Pydantic schemas
-│   │   ├── static/         # Static assets
-│   │   ├── database.py     # Database connection
-│   │   └── main.py         # FastAPI entry point
-│   ├── requirements.txt
-│   └── seedtest.py         # Seed data script
-├── frontend/
+│   │   ├── api/                    # روترها و اندپوینت‌های API
+│   │   │   ├── auth_api.py         # احراز هویت و لاگین/لاگ‌اوت
+│   │   │   ├── customers_api.py    # مدیریت مشتریان
+│   │   │   ├── dashboard_api.py    # آمار و ارقام داشبورد
+│   │   │   ├── deps.py             # وابستگی‌ها و احراز هویت
+│   │   │   ├── lines_api.py        # مدیریت خدمات و لاین‌ها
+│   │   │   ├── reservations_api.py # مدیریت رزروها و نوبت‌ها
+│   │   │   └── workschedules_api.py# زمان‌بندی ساعات کاری
+│   │   ├── models/                 # مدل‌های پایگاه داده SQLAlchemy
+│   │   ├── schemas/                # شِماهای اعتبارسنجی داده (Pydantic)
+│   │   ├── static/                 # فایل‌های استاتیک کمکی
+│   │   ├── database.py             # اتصال دیتابیس و مدیریت Session
+│   │   └── main.py                 # نقطه ورود اصلی سرور و سرو کننده SPA
+│   ├── saloon.db                   # پایگاه داده SQLite حاوی داده‌های آماده
+│   ├── requirements.txt            # لیست پکیج‌های پایتون
+│   └── seedtest.py                 # اسکریپت تزریق داده‌های اولیه نمونه
+│
+├── frontend/                       # کدهای سمت کاربر (Vue 3 + Vite)
 │   ├── src/
-│   │   ├── views/          # Vue pages
-│   │   ├── api.js          # Backend communication layer
-│   │   ├── auth.js         # Token / auth handling
-│   │   ├── router.js       # Routing
-│   │   └── App.vue
-│   ├── index.html
-│   ├── vite.config.js
-│   └── package.json
-├── start.py                # Runs frontend + backend together
+│   │   ├── views/                  # صفحات و نماهای کاربری
+│   │   │   ├── CustomerForm.vue    # ثبت‌نام و فرم مشتری
+│   │   │   ├── Customers.vue       # لیست مشتریان
+│   │   │   ├── Dashboard.vue       # داشبورد اصلی
+│   │   │   ├── LineForm.vue        # فرم افزودن/ویرایش لاین
+│   │   │   ├── Lines.vue           # لیست خدمات
+│   │   │   ├── Login.vue           # صفحه ورود
+│   │   │   ├── ReservationDetail.vue # جزئیات رزرو
+│   │   │   ├── ReservationForm.vue # ثبت رزرو جدید
+│   │   │   ├── Reservations.vue    # لیست رزروها
+│   │   │   ├── ScheduleForm.vue    # فرم ساعات کاری
+│   │   │   └── Schedules.vue       # جدول ساعات کاری
+│   │   ├── api.js                  # لایه ارتباط با اندپوینت‌های بک‌اند
+│   │   ├── auth.js                 # مدیریت استیت احراز هویت
+│   │   ├── router.js               # تنظیمات مسیرها و گارد احراز هویت
+│   │   ├── style.css               # استایل‌های سراسری، تم تاریک و نئون
+│   │   └── App.vue                 # کامپوننت ریشه برنامه
+│   ├── index.html                  # قالب اصلی صفحه و کدهای Canvas
+│   ├── vite.config.js              # پیکربندی Vite و پروکسی دولوپمنت
+│   └── package.json                # مشخصات و وابستگی‌های فرانت‌اند
+│
+├── screenshots/                    # اسکرین‌شات‌های مستندسازی پروژه
+├── Dockerfile                      # داکرفایل چندمرحله‌ای برای بیلد و ران
+├── render.yaml                     # پیکربندی سرویس ابری Render
+├── start.py                        # اسکریپت اجرای همزمان لوکال (ویندوز)
+├── .dockerignore
 ├── .gitignore
-└── README.md
-⚙️ Prerequisites
-Python 3.10+
+└── readme.md
+```
 
-Node.js 18+ and npm
+---
 
-Windows (the start.py script uses taskkill; it needs changes for Linux/macOS)
+## 🚀 راهنمای نصب و راه‌اندازی لوکال (محلی)
 
-🚀 Installation & Running
-1. Clone the project
-bash
-git clone <repo-url>
-cd project_v7
-2. Set up the Backend
-powershell
-# Create and activate a virtual environment
+### ۱. پیش‌نیازها
+- **Python 3.10+**
+- **Node.js 18+** و **npm**
+
+---
+
+### ۲. کلون و آماده‌سازی مخزن
+
+```bash
+git clone https://github.com/mhdds-codesign/beaty_saloon.git
+cd beaty_saloon
+```
+
+---
+
+### ۳. روش اول: اجرای سریع و خودکار (با start.py)
+
+در محیط ویندوز می‌توانید تنها با اجرای اسکریپت `start.py`، هم فرانت‌اند و هم بک‌اند را با یک دستور بالا بیاورید:
+
+```powershell
+# ۱. ساخت و فعال‌سازی محیط مجازی پایتون
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
-# Install dependencies
+# ۲. نصب وابستگی‌های بک‌اند
 pip install -r backend\requirements.txt
-3. Set up the Frontend
-powershell
+
+# ۳. نصب وابستگی‌های فرانت‌اند
 cd frontend
 npm install
 cd ..
-4. Run both together
-powershell
-py start.py
-This script:
 
-Starts Vite (frontend) on port 5173,
+# ۴. اجرای همزمان هر دو بخش
+python start.py
+```
 
-Runs FastAPI (backend) at http://127.0.0.1:8000,
+- برنامه فرانت‌اند در آدرس: `http://localhost:5173`
+- سرور بک‌اند در آدرس: `http://127.0.0.1:8000`
+- مستندات تعاملی Swagger در آدرس: `http://127.0.0.1:8000/docs`
 
-Cleanly shuts down both on Ctrl+C.
+---
 
-5. Run separately (optional)
-Backend:
+### ۴. روش دوم: اجرای دستی و مجزا
 
-powershell
+#### اجرای بک‌اند (FastAPI):
+```powershell
 cd backend
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-Frontend:
+..\.venv\Scripts\uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
 
-powershell
+#### اجرای فرانت‌اند (Vite Dev Server):
+```powershell
 cd frontend
 npm run dev
-🔗 Important URLs
-Service	URL
-Frontend	http://localhost:5173
-Backend	http://127.0.0.1:8000
-API Docs (Swagger)	http://127.0.0.1:8000/docs
-ReDoc	http://127.0.0.1:8000/redoc
-🗄️ Database
-Uses SQLite; the file is at backend/saloon.db.
+```
 
-To load initial data:
+---
 
-powershell
-cd backend
-py seedtest.py
-Files matching *.db are listed in .gitignore and are not committed.
+### ۵. روش سوم: اجرا با داکر (Docker)
 
-📝 Development Notes
-Add the Landing Page.
-Add the initial license.
+```bash
+docker build -t beauty-saloon .
+docker run -p 8000:8000 beauty-saloon
+```
+پس از اجرا، کل برنامه (فرانت و بک) در پورت `http://localhost:8000` در دسترس خواهد بود.
 
-📄 License
-This project was developed for educational and personal use.
+---
+
+## 👤 حساب‌های کاربری پیش‌فرض جهت تست
+
+برای بررسی سریع امکانات سامانه (هم در نسخه لوکال و هم در نسخه آنلاین)، می‌توانید از حساب کاربری زیر استفاده کنید:
+
+| نام کاربری (Username) | رمز عبور (Password) | نقش (Role) | توضیحات |
+|:---:|:---:|:---:|:---:|
+| `admin` | `admin123` | **مدیر ارشد (Admin)** | دسترسی کامل به کلیه بخش‌ها، مدیریت نوبت‌ها، تغییر وضعیت، تعریف لاین و زمان‌بندی |
+
+> [!NOTE]
+> کاربران عادی می‌توانند مستقیماً از طریق لینک **ثبت‌نام** در صفحه ورود، حساب جدید ایجاد کرده و اقدام به رزرو نوبت نمایند.
+
+---
+
+## 📄 لایسنس و حقوق استفاده
+
+این پروژه به منظور اهداف آموزشی و نمونه‌کار طراحی و توسعه داده شده است. استفاده و توسعه آن با ذکر منبع بلامانع است.
