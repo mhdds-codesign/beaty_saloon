@@ -12,63 +12,67 @@
         <div class="card-header">
            اطلاعات نوبت
         </div>
-        <div class="card-body">
-          <table class="table">
-            <tbody>
-              <tr>
-                <td><strong>مشتری</strong></td>
-                <td>{{ reservation.customer_name || '—' }}</td>
-              </tr>
-              <tr>
-                <td><strong>لاین / سرویس</strong></td>
-                <td>
-                  <strong>{{ reservation.name_line }}</strong> — 
-                  {{ reservation.name_service }}
-                </td>
-              </tr>
-              <tr>
-                <td><strong>روز و ساعت</strong></td>
-                <td>
-                  {{ reservation.weekday}}<br>
-                  <strong>{{ reservation.start_time }} - {{ reservation.end_time }}</strong>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>قیمت نهایی</strong></td>
-                <td>
-                  <strong>{{ reservation.price ? reservation.price.toLocaleString() + ' تومان' : '—' }}</strong>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>وضعیت</strong></td>
-                <td>
-                  <span class="badge" :class="getStatusClass(reservation.status)">
-                    {{ getStatusText(reservation.status) }}
-                  </span>
-                  
-                  <select v-model="newStatus" class="btn-sm" style="width:auto; margin-right:12px;">
-                    <option value="confirmed">تایید شده</option>
-                    <option value="completed">انجام شده</option>
-                    <option value="cancelled">لغو شده</option>
-                  </select>
-                  
-                  <button 
-                    class="btn btn-sm btn-primary" 
-                    @click="updateStatus"
-                    :disabled="saving"
-                    style="margin-right:12px;"
-                  >
-                  {{ saving ? 'در حال ذخیره...' : ' بروزرسانی وضعیت' }}
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="card-body" style="padding:0;">
+          <div class="table-responsive">
+            <table class="table" style="text-align: right;">
+              <tbody>
+                <tr>
+                  <td style="width: 140px;"><strong>مشتری</strong></td>
+                  <td>{{ reservation.customer_name || '—' }}</td>
+                </tr>
+                <tr>
+                  <td><strong>لاین / سرویس</strong></td>
+                  <td>
+                    <strong>{{ reservation.name_line }}</strong> — 
+                    {{ reservation.name_service }}
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>روز و ساعت</strong></td>
+                  <td>
+                    {{ reservation.weekday }}<br>
+                    <strong>{{ reservation.start_time }} - {{ reservation.end_time }}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>قیمت نهایی</strong></td>
+                  <td>
+                    <strong>{{ reservation.price ? reservation.price.toLocaleString() + ' تومان' : '—' }}</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>وضعیت</strong></td>
+                  <td>
+                    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
+                      <span class="badge" :class="getStatusClass(reservation.status)">
+                        {{ getStatusText(reservation.status) }}
+                      </span>
+                      
+                      <select v-model="newStatus" class="btn-sm" style="width:auto;">
+                        <option value="confirmed">تایید شده</option>
+                        <option value="completed">انجام شده</option>
+                        <option value="cancelled">لغو شده</option>
+                      </select>
+                      
+                      <button 
+                        class="btn btn-sm btn-primary" 
+                        @click="updateStatus"
+                        :disabled="saving"
+                        style="margin:0;"
+                      >
+                        {{ saving ? 'در حال ذخیره...' : 'بروزرسانی وضعیت' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <div style="margin-top: 1.5rem;">
-        <router-link to="/reservations" class="btn btn-secondary">
+        <router-link to="/reservations" class="btn btn-secondary" style="margin:0;">
           <i class="fas fa-arrow-left"></i> بازگشت به لیست نوبت‌ها
         </router-link>
       </div>
@@ -113,10 +117,9 @@ export default {
       if (!this.newStatus) return
       this.saving = true
       try {
-        const updated = await api.updateReservationStatus(this.$route.params.id, this.newStatus)
+        await api.updateReservationStatus(this.$route.params.id, this.newStatus)
         alert('وضعیت نوبت با موفقیت بروزرسانی شد')
         this.$router.push('/reservations')
-        
       } catch (e) {
         alert('خطا در بروزرسانی وضعیت: ' + (e.message || ''))
       } finally {

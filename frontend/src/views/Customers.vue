@@ -3,7 +3,7 @@
     <h2><i class="fas fa-users"></i> مشتریان</h2>
 
     <div style="margin:1rem 0;" v-if="isAdmin">
-      <router-link to="/customers/new" class="btn btn-primary">
+      <router-link to="/customers/new" class="btn btn-primary" style="margin:0;">
         <i class="fas fa-plus"></i> مشتری جدید
       </router-link>
     </div>
@@ -29,47 +29,49 @@
          همه مشتریان ({{ total }})
       </div>
       <div class="card-body" style="padding:0;">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>نام</th>
-              <th>شماره تلفن</th>
-              <th>تاریخ ثبت</th>
-              <th>آدرس</th>
-              <th>عملیات</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="c in customers" :key="c.id">
-              <td>#{{ c.id }}</td>
-              <td>{{ c.name }}</td>
-              <td>{{ c.phone_number || '—' }}</td>
-              <td>{{ c.register_date ? c.register_date.slice(0,10) : '—' }}</td>
-              <td style="max-width: 250px;">
-                <small>{{ c.address ? c.address.substring(0, 60) + '...' : '—' }}</small>
-              </td>
-              <td>
-                <router-link 
-                  :to="`/customers/${c.id}/edit`" 
-                  class="btn btn-warning btn-sm"
-                >
-                  <i class="fas fa-edit"></i>
-                </router-link>
-                <button
-                  v-if="isAdmin"
-                  class="btn btn-danger btn-sm"
-                  @click="doDelete(c)"
-                >
-                  <i class="fas fa-trash-alt"></i>
-                </button>
-              </td>
-            </tr>
-            <tr v-if="!customers.length">
-              <td colspan="6" class="text-center py-4">هنوز مشتری ثبت نشده است.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>نام</th>
+                <th>شماره تلفن</th>
+                <th>تاریخ ثبت</th>
+                <th>آدرس</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="c in customers" :key="c.id">
+                <td>#{{ c.id }}</td>
+                <td>{{ c.name }}</td>
+                <td>{{ c.phone_number || '—' }}</td>
+                <td>{{ c.register_date ? c.register_date.slice(0,10) : '—' }}</td>
+                <td style="max-width: 250px; white-space: normal;">
+                  <small>{{ c.address ? c.address.substring(0, 60) + '...' : '—' }}</small>
+                </td>
+                <td style="white-space: nowrap;">
+                  <router-link 
+                    :to="`/customers/${c.id}/edit`" 
+                    class="btn btn-warning btn-sm"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </router-link>
+                  <button
+                    v-if="isAdmin"
+                    class="btn btn-danger btn-sm"
+                    @click="doDelete(c)"
+                  >
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="!customers.length">
+                <td colspan="6" class="text-center py-4">هنوز مشتری ثبت نشده است.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -168,7 +170,7 @@ export default {
       try {
         await api.deleteCustomer(customer.id)
         alert('مشتری با موفقیت حذف شد')
-        this.load() // بروزرسانی لیست
+        this.load()
       } catch (e) {
         alert('خطا در حذف مشتری: ' + (e.message || ''))
       }

@@ -4,24 +4,24 @@
 
     <!-- فیلتر و جستجو -->
     <div class="card">
-      <div class="card-header"> جستجو و فیلتر</div>
+      <div class="card-header">جستجو و فیلتر</div>
       <div class="card-body">
-        <div class="d-flex gap-2" style="flex-wrap:wrap;">
-          <div style="flex:2;">
+        <div class="filter-bar">
+          <div class="filter-field">
             <label>جستجو</label>
-            <input v-model="filters.q" placeholder="نام لاین..." />
+            <input v-model="filters.q" placeholder="نام لاین..." @keyup.enter="load" />
           </div>
           
-          <div style="min-width:150px;">
+          <div class="filter-field" style="max-width: 200px;">
             <label>وضعیت</label>
-            <select v-model="filters.status">
+            <select v-model="filters.status" @change="load">
               <option value="">همه وضعیت‌ها</option>
               <option value="free">آزاد</option>
               <option value="busy">رزرو شده</option>
             </select>
           </div>
           
-          <div style="align-self:flex-end;">
+          <div class="filter-actions">
             <button class="btn btn-primary" @click="load">
               <i class="fas fa-search"></i> جستجو
             </button>
@@ -34,7 +34,7 @@
     </div>
 
     <div style="margin:1rem 0;" v-if="isAdmin">
-      <router-link to="/schedules/new" class="btn btn-primary">
+      <router-link to="/schedules/new" class="btn btn-primary" style="margin:0;">
         <i class="fas fa-plus"></i> برنامه کاری جدید
       </router-link>
     </div>
@@ -46,50 +46,52 @@
        همه برنامه‌ها ({{ total }})
       </div>
       <div class="card-body" style="padding:0;">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>لاین </th>
-              <th>روز هفته</th>
-              <th>ساعت شروع</th>
-              <th>ساعت پایان</th>
-              <th>وضعیت</th>
-              <th v-if="isAdmin">عملیات</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="s in schedules" :key="s.id">
-              <td>#{{ s.id }}</td>
-              <td>{{ s.line_name || '—' }}</td>
-              <td>{{ s.weekday }}</td>
-              <td>{{ s.start_time }}</td>
-              <td>{{ s.end_time }}</td>
-              <td>
-                <span class="badge" :class="getStatusClass(s.status)">
-                  {{ getStatusText(s.status) }}
-                </span>
-              </td>
-              <td v-if="isAdmin">
-                <router-link
-                  :to="`/schedules/${s.id}/edit`"
-                  class="btn btn-warning btn-sm"
-                >
-                  <i class="fas fa-edit"></i>
-                </router-link>
-                <button
-                  class="btn btn-danger btn-sm"
-                  @click="doDelete(s)"
-                >
-                  <i class="fas fa-trash-alt"></i>
-                </button>
-              </td>
-            </tr>
-            <tr v-if="!schedules.length">
-              <td colspan="7" class="text-center py-4">هنوز برنامه کاری ثبت نشده است.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>لاین </th>
+                <th>روز هفته</th>
+                <th>ساعت شروع</th>
+                <th>ساعت پایان</th>
+                <th>وضعیت</th>
+                <th v-if="isAdmin">عملیات</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="s in schedules" :key="s.id">
+                <td>#{{ s.id }}</td>
+                <td>{{ s.line_name || '—' }}</td>
+                <td>{{ s.weekday }}</td>
+                <td>{{ s.start_time }}</td>
+                <td>{{ s.end_time }}</td>
+                <td>
+                  <span class="badge" :class="getStatusClass(s.status)">
+                    {{ getStatusText(s.status) }}
+                  </span>
+                </td>
+                <td v-if="isAdmin" style="white-space: nowrap;">
+                  <router-link
+                    :to="`/schedules/${s.id}/edit`"
+                    class="btn btn-warning btn-sm"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </router-link>
+                  <button
+                    class="btn btn-danger btn-sm"
+                    @click="doDelete(s)"
+                  >
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="!schedules.length">
+                <td colspan="7" class="text-center py-4">هنوز برنامه کاری ثبت نشده است.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 

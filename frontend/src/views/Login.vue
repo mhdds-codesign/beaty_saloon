@@ -1,5 +1,5 @@
 <template>
-  <div class="card" style="max-width: 420px; margin: 4rem auto;">
+  <div class="card form-card login-card">
     <div class="card-header">
      فرم ورود
     </div>
@@ -33,7 +33,7 @@
         <button
           type="submit"
           class="btn btn-primary"
-          style="width: 100%;"
+          style="width: 100%; margin: 0.5rem 0;"
           :disabled="loading"
         >
           <i class="fas fa-sign-in-alt"></i>
@@ -75,11 +75,7 @@ export default {
 
       try {
         await api.login(this.username, this.password)
-        // this.$router.push('/')
         window.location.href = '/'
-        
-        alert('تبریک! شما با موفقیت وارد شدید.')
-        
       } catch (e) {
         this.error = e.message || 'نام کاربری یا رمز عبور اشتباه است'
       } finally {
@@ -92,13 +88,14 @@ export default {
 
 <style scoped>
 .register-link {
-  color: #ec4899;
+  color: #ff6b9d;
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
+  transition: color 0.2s;
 }
 .register-link:hover {
-  color: #db2777;
+  color: #ff2d95;
   text-decoration: underline;
 }
 </style>

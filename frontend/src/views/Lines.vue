@@ -1,18 +1,18 @@
 <template>
   <div>
-    <h2><i class="fas fa-box"></i> سرویس ها و لاین‌ها</h2>
+    <h2><i class="fas fa-box"></i> سرویس‌ها و لاین‌ها</h2>
 
     <!-- فیلتر و جستجو -->
     <div class="card">
       <div class="card-header">جستجو و فیلتر</div>
       <div class="card-body">
-        <div class="d-flex gap-2" style="flex-wrap:wrap;">
-          <div style="flex:2;">
+        <div class="filter-bar">
+          <div class="filter-field">
             <label>جستجو</label>
-            <input v-model="filters.q" placeholder="نام لاین یا سرویس..." />
+            <input v-model="filters.q" placeholder="نام لاین یا سرویس..." @keyup.enter="load" />
           </div>
           
-          <div style="align-self:flex-end;">
+          <div class="filter-actions">
             <button class="btn btn-primary" @click="load">
               <i class="fas fa-search"></i> جستجو
             </button>
@@ -25,7 +25,7 @@
     </div>
 
     <div style="margin:1rem 0;" v-if="isAdmin">
-      <router-link to="/lines/new" class="btn btn-primary">
+      <router-link to="/lines/new" class="btn btn-primary" style="margin:0;">
         <i class="fas fa-plus"></i> سرویس / لاین جدید
       </router-link>
     </div>
@@ -46,11 +46,12 @@
 
     <div v-if="loading" class="loading">در حال بارگذاری...</div>
 
-      <div v-else class="card">
-        <div class="card-header">
-           همه سرویس ها ({{ total }})
-        </div>
-        <div class="card-body" style="padding:0;">
+    <div v-else class="card">
+      <div class="card-header">
+         همه سرویس‌ها ({{ total }})
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="table-responsive">
           <table class="table">
             <thead>
               <tr>
@@ -69,8 +70,7 @@
                 <td>{{ line.name_service }}</td>
                 <td>{{ line.price ? line.price.toLocaleString() + ' تومان' : '—' }}</td>
                 <td>{{ line.duration_minutes || '—' }}</td>
-                <td v-if="isAdmin">
-                  <!-- <div style="display: inline-flex;"> -->
+                <td v-if="isAdmin" style="white-space: nowrap;">
                   <router-link
                     :to="`/lines/${line.id}/edit`"
                     class="btn btn-warning btn-sm"
@@ -83,7 +83,6 @@
                   >
                     <i class="fas fa-trash-alt"></i>
                   </button>
-                  <!-- </div> -->
                 </td>
               </tr>
               <tr v-if="!lines.length">
@@ -93,37 +92,38 @@
           </table>
         </div>
       </div>
+    </div>
 
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="pagination">
-        <button 
-          class="btn btn-sm" 
-          :class="page<=1?'btn-disabled':''"
-          :disabled="page <= 1"
-          @click="goPage(page-1)"
-        >
-          &larr; قبلی
-        </button>
-        
-        <span 
-          v-for="n in totalPages" 
-          :key="n" 
-          class="btn btn-sm" 
-          :class="{ 'btn-active': n === page }"
-          @click="goPage(n)"
-        >
-          {{ n }}
-        </span>
-        
-        <button 
-          class="btn btn-sm" 
-          :class="page>=totalPages?'btn-disabled':''"
-          :disabled="page >= totalPages"
-          @click="goPage(page+1)"
-        >
-          بعدی &rarr;
-        </button>
-      </div>
+    <!-- Pagination -->
+    <div v-if="totalPages > 1" class="pagination">
+      <button 
+        class="btn btn-sm"
+        :class="page<=1?'btn-disabled':''"
+        :disabled="page <= 1"
+        @click="goPage(page-1)"
+      >
+        &larr; قبلی
+      </button>
+      
+      <span 
+        v-for="n in totalPages" 
+        :key="n" 
+        class="btn btn-sm" 
+        :class="{ 'btn-active': n === page }"
+        @click="goPage(n)"
+      >
+        {{ n }}
+      </span>
+      
+      <button 
+        class="btn btn-sm" 
+        :class="page>=totalPages?'btn-disabled':''"
+        :disabled="page >= totalPages"
+        @click="goPage(page+1)"
+      >
+        بعدی &rarr;
+      </button>
+    </div>
   </div>
 </template>
 

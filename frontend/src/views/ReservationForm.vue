@@ -1,5 +1,5 @@
 <template>
-  <div class="card" style="max-width: 620px; margin: 2rem auto;">
+  <div class="card form-card">
     <div class="card-header">
       {{ isEdit ? 'ویرایش نوبت' : 'نوبت جدید' }}
     </div>

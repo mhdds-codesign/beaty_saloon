@@ -1,5 +1,5 @@
 <template>
-  <div class="card" style="max-width: 520px; margin: 2rem auto;">
+  <div class="card form-card">
     <div class="card-header">
       {{ isRegister ? 'ثبت‌نام مشتری' : (isEdit ? 'ویرایش مشتری' : 'مشتری جدید') }}
     </div>

@@ -4,17 +4,17 @@
 
     <!-- فیلتر و جستجو -->
     <div class="card">
-      <div class="card-header"> جستجو و فیلتر</div>
+      <div class="card-header">جستجو و فیلتر</div>
       <div class="card-body">
-        <div class="d-flex gap-2" style="flex-wrap:wrap;">
-          <div style="flex:2;">
+        <div class="filter-bar">
+          <div class="filter-field">
             <label>جستجو</label>
-            <input v-model="filters.q" placeholder="نام لاین یا سرویس..." />
+            <input v-model="filters.q" placeholder="نام لاین یا سرویس..." @keyup.enter="load" />
           </div>
           
-          <div style="min-width:150px;">
+          <div class="filter-field" style="max-width: 200px;">
             <label>وضعیت</label>
-            <select v-model="filters.status">
+            <select v-model="filters.status" @change="load">
               <option value="">همه وضعیت‌ها</option>
               <option value="confirmed">تایید شده</option>
               <option value="completed">انجام شده</option>
@@ -22,7 +22,7 @@
             </select>
           </div>
           
-          <div style="align-self:flex-end;">
+          <div class="filter-actions">
             <button class="btn btn-primary" @click="load">
               <i class="fas fa-search"></i> جستجو
             </button>
@@ -35,7 +35,7 @@
     </div>
 
     <div style="margin:1rem 0;">
-      <router-link to="/reservations/new" class="btn btn-primary">
+      <router-link to="/reservations/new" class="btn btn-primary" style="margin:0;">
         <i class="fas fa-plus"></i> نوبت جدید
       </router-link>
     </div>
@@ -47,59 +47,61 @@
        همه نوبت‌ها ({{ total }})
       </div>
       <div class="card-body" style="padding:0;">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>مشتری</th>
-              <th>
-                <strong>لاین</strong><br>
-                <small>سرویس</small>
-              </th>
-              <th>تاریخ و زمان</th>
-              <th>قیمت</th>
-              <th>وضعیت</th>
-              <th>عملیات</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="res in reservations" :key="res.id">
-              <td>#{{ res.id }}</td>
-              <td>{{ res.customer_name || '—' }}</td>
-              <td>
-                <strong>{{ res.name_line }}</strong><br>
-                <small>{{ res.name_service }}</small>
-              </td>
-              <td>
-                {{ res.weekday }}<br>
-                <small>{{ res.start_time }} - {{ res.end_time }}</small>
-              </td>
-              <td>{{ res.price ? res.price.toLocaleString() + ' تومان' : '—' }}</td>
-              <td>
-                <span class="badge" :class="getStatusClass(res.status)">
-                  {{ getStatusText(res.status) }}
-                </span>
-              </td>
-              <td>
-                <router-link 
-                  :to="`/reservations/${res.id}`" 
-                  class="btn btn-sm btn-primary"
-                >
-                  <i class="fas fa-eye"></i>
-                </router-link>
-                <router-link 
-                  :to="`/reservations/${res.id}/edit`" 
-                  class="btn btn-sm btn-warning"
-                >
-                  <i class="fas fa-edit"></i>
-                </router-link>
-              </td>
-            </tr>
-            <tr v-if="!reservations.length">
-              <td colspan="7" class="text-center py-4">هنوز نوبت ثبت نشده است.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>مشتری</th>
+                <th>
+                  <strong>لاین</strong><br>
+                  <small>سرویس</small>
+                </th>
+                <th>تاریخ و زمان</th>
+                <th>قیمت</th>
+                <th>وضعیت</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="res in reservations" :key="res.id">
+                <td>#{{ res.id }}</td>
+                <td>{{ res.customer_name || '—' }}</td>
+                <td>
+                  <strong>{{ res.name_line }}</strong><br>
+                  <small>{{ res.name_service }}</small>
+                </td>
+                <td>
+                  {{ res.weekday }}<br>
+                  <small>{{ res.start_time }} - {{ res.end_time }}</small>
+                </td>
+                <td>{{ res.price ? res.price.toLocaleString() + ' تومان' : '—' }}</td>
+                <td>
+                  <span class="badge" :class="getStatusClass(res.status)">
+                    {{ getStatusText(res.status) }}
+                  </span>
+                </td>
+                <td style="white-space: nowrap;">
+                  <router-link 
+                    :to="`/reservations/${res.id}`" 
+                    class="btn btn-sm btn-primary"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </router-link>
+                  <router-link 
+                    :to="`/reservations/${res.id}/edit`" 
+                    class="btn btn-sm btn-warning"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </router-link>
+                </td>
+              </tr>
+              <tr v-if="!reservations.length">
+                <td colspan="7" class="text-center py-4">هنوز نوبت ثبت نشده است.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
