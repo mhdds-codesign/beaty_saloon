@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -24,17 +24,24 @@ else:
             "postgresql://", "postgresql+psycopg://", 1
         )
 
+    # Require TLS unless the copied Supabase URL already specifies a stricter mode.
     parsed_url = urlparse(SQLALCHEMY_DATABASE_URL)
-    is_supabase_transaction_pooler = (
+    query = dict(parse_qsl(parsed_url.query, keep_blank_values=True))
+    query.setdefault("sslmode", "require")
+    SQLALCHEMY_DATABASE_URL = urlunparse(
+        parsed_url._replace(query=urlencode(query))
+    )
+
+    is_shared_transaction_pooler = (
         parsed_url.port == 6543
         and parsed_url.hostname
         and parsed_url.hostname.endswith(".pooler.supabase.com")
     )
 
     engine_options["pool_pre_ping"] = True
-    if is_supabase_transaction_pooler:
-        # Transaction poolers are intended for short-lived/serverless requests.
-        # Psycopg's automatic prepared statements must be disabled in this mode.
+    if is_shared_transaction_pooler:
+        # Supabase shared transaction pooler is for short-lived/serverless
+        # requests. Do not retain client-side connections or prepared statements.
         engine_options["poolclass"] = NullPool
         engine_options["connect_args"] = {"prepare_threshold": None}
 
