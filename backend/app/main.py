@@ -105,7 +105,7 @@ app.add_middleware(
 )
 
 static_dir = Path(__file__).resolve().parent / "static"
-app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+app.mount("/static", StaticFiles(directory=str(static_dir), check_dir=False), name="static")
 
 # Register API routers. Each router already uses the /api prefix.
 app.include_router(auth_router)
